@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "Evidence Home Staging",
+    "slug": "evidence-home-staging",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#1a1a1a"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "fr.evidence.homestaging",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1a1a1a"
+      },
+      "package": "fr.evidence.homestaging"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "38535e24-0b59-4d5c-91bc-138c7425db43"
+      }
+    }
+  }
+}
