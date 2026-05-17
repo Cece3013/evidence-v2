@@ -36,9 +36,8 @@ const PRO_OFFERS = [
       "Biens vides & habités",
       "Livraison sous 2-12h",
       "Photos supplémentaires 4,50€",
-      "Support réactif prioritaire",
+      "Support réactif par email",
       "Accès plateforme 24/7",
-      "Analytics & rapports",
       "Facture automatique",
     ],
   },
@@ -51,14 +50,12 @@ const PRO_OFFERS = [
     popular: false,
     target: "Agences & réseaux fort volume",
     features: [
-      "Photos illimitées/mois",
+      "80 photos/mois incluses",
       "Biens vides & habités",
       "Livraison sous 2-12h",
       "Photos supplémentaires 4,50€",
-      "Support réactif prioritaire",
-      "Gestion équipe & utilisateurs",
-      "Analytics & rapports avancés",
-      "API d'intégration",
+      "Support réactif par email",
+      "Accès plateforme 24/7",
       "Facture automatique",
     ],
   },
@@ -84,7 +81,7 @@ export const ProOffersScreen = () => {
             Solutions d'abonnement pensées pour les professionnels de l'immobilier.
           </Text>
           <Text style={styles.introSub}>
-            Photos illimitées, support réactif, intégrations avancées.
+            Support réactif, intégrations avancées.
           </Text>
 
           {/* Offres */}
@@ -120,14 +117,6 @@ export const ProOffersScreen = () => {
               </TouchableOpacity>
             </View>
           ))}
-
-          {/* Info footer */}
-          <View style={styles.infoBox}>
-            <Text style={styles.infoTitle}>Besoin d'aide ?</Text>
-            <Text style={styles.infoText}>
-              Contactez notre équipe pour discuter d'un plan personnalisé ou intégrations spéciales.
-            </Text>
-          </View>
 
         </View>
       </ScrollView>
@@ -179,10 +168,5 @@ const styles = StyleSheet.create({
   ctaText: { fontSize: 12, fontWeight: "600", color: COLORS.grayDark },
   ctaTextPrimary: { color: COLORS.goldDark },
 
-  infoBox: {
-    backgroundColor: COLORS.goldLight, borderRadius: 12,
-    padding: 14, marginTop: 20, marginBottom: 20, borderWidth: 0.5, borderColor: COLORS.goldMid,
-  },
-  infoTitle: { fontSize: 13, fontWeight: "600", color: COLORS.goldDark, marginBottom: 4 },
-  infoText: { fontSize: 11, color: COLORS.goldDark, lineHeight: 16 },
+
 });
