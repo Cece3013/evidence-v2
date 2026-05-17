@@ -8,6 +8,7 @@ import { LoginScreen } from '../screens/LoginScreen';
 import { AboutScreen } from "../screens/AboutScreen";
 import { AnalyzeScreen } from "../screens/AnalyzeScreen";
 import { OffersScreen } from "../screens/OffersScreen";
+import { ProOffersScreen } from "../screens/ProOffersScreen";
 import { AccountScreen } from "../screens/AccountScreen";
 import { FreeTrialScreen } from "../screens/FreeTrialScreen";
 import { ConfigureScreen } from "../screens/ConfigureScreen";
@@ -74,6 +75,7 @@ const TabNavigator = () => (
       component={OffersScreen}
       options={{ tabBarLabel: "Offres" }}
     />
+    
     <Tab.Screen
       name="Analyze"
       component={AnalyzeScreen}
@@ -128,6 +130,11 @@ export const AppNavigator = () => (
   name="Configure"
   component={UploadScreen}
   options={{ title: "Mes photos" }}
+/>
+<Stack.Screen
+  name="ProOffers"
+  component={ProOffersScreen}
+  options={{ title: "Offres PRO" }}
 />
 <Stack.Screen
   name="Upload"

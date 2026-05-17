@@ -6,36 +6,57 @@ import { COLORS } from "../constants";
 
 const OFFERS_VIDE = [
   {
-    id: "essentiel",
-    name: "Essentiel",
-    price: "14,90€",
-    priceNum: 14.90,
+    id: "decouverte",
+    name: "Découverte",
+    price: "39€",
+    priceNum: 39,
     unit: "/analyse",
     popular: false,
     features: [
-      "6 photos maximum",
-      "Avant / Après immédiat",
-      "3 conseils de visites actionnables",
+      "2 photos maximum",
+      "Avant / Après IA réaliste",
+      "3 conseils actionnables",
       "Multi-vue (Salon & Chambre)",
-      "Régénération illimitée",
       "Téléchargement illimité HD",
+      "Visuels contrôlés et optimisés",
+      "Résultat sous 2-12h",
       "Facture automatique",
     ],
   },
   {
-    id: "essentiel_plus",
-    name: "Essentiel+",
-    price: "24,90€",
-    priceNum: 24.90,
+    id: "essentielle",
+    name: "Essentielle",
+    price: "89€",
+    priceNum: 89,
+    unit: "/analyse",
+    popular: false,
+    features: [
+      "5 photos maximum",
+      "Avant / Après IA réaliste",
+      "3 conseils actionnables",
+      "Multi-vue (Salon & Chambre)",
+      "Téléchargement illimité HD",
+      "Visuels contrôlés et optimisés",
+      "Résultat sous 2-12h",
+      "Facture automatique",
+    ],
+  },
+  {
+    id: "performance",
+    name: "Performance",
+    price: "139€",
+    priceNum: 139,
     unit: "/analyse",
     popular: true,
     features: [
-      "15 photos maximum",
-      "Avant / Après immédiat",
-      "3 conseils de visites actionnables",
+      "Jusqu'à 8 photos maximum",
+      "Avant / Après IA réaliste",
+      "3 conseils actionnables",
       "Multi-vue (Salon & Chambre)",
-      "Régénération illimitée",
       "Téléchargement illimité HD",
+      "Visuels contrôlés et optimisés",
+      "Résultat sous 2-12h",
+      "Max impact annonce",
       "Facture automatique",
     ],
   },
@@ -43,40 +64,57 @@ const OFFERS_VIDE = [
 
 const OFFERS_HABITE = [
   {
-    id: "premium",
-    name: "Premium",
-    price: "69€",
-    priceNum: 69,
-    unit: "/analyse",
-    popular: true,
-    subLabel: "Bien habité · Expertise humaine · 24-48h",
-    features: [
-      "Jusqu'à 3 pièces",
-      "Rapport PDF personnalisé",
-      "Conseils pièce par pièce",
-      "Projection directe sur vos photos",
-      "Optimisation vente rapide",
-      "Facture automatique",
-      "Résultat sous 24-48h",
-    ],
-  },
-  {
-    id: "premium_plus",
-    name: "Premium+",
-    price: "129€",
-    priceNum: 129,
+    id: "essentiel_habite",
+    name: "Essentiel",
+    price: "79€",
+    priceNum: 79,
     unit: "/analyse",
     popular: false,
     subLabel: "Bien habité · Expertise humaine · 48-72h",
     features: [
-      "Jusqu'à 6 pièces",
-      "Rapport PDF complet",
+      "Analyse jusqu'à 2 pièces",
+      "Rapport PDF personnalisé",
       "Conseils pièce par pièce",
       "Projection directe sur vos photos",
       "Optimisation vente rapide",
       "Facture automatique",
       "Résultat sous 48-72h",
     ],
+  },
+  {
+    id: "premium_habite",
+    name: "Premium",
+    price: "159€",
+    priceNum: 159,
+    unit: "/analyse",
+    popular: true,
+    subLabel: "Bien habité · Expertise humaine · 72h",
+    features: [
+      "Analyse jusqu'à 5 pièces",
+      "Rapport PDF personnalisé",
+      "Conseils pièce par pièce",
+      "Projection directe sur vos photos",
+      "Optimisation vente rapide",
+      "Facture automatique",
+      "Résultat sous 72h",
+    ],
+  },
+];
+
+const OPTIONS_COMPLEMENTAIRES = [
+  {
+    id: "photo_supp",
+    icon: "📸",
+    name: "Photo supplémentaire",
+    price: "12€",
+    desc: "Besoin d'une photo en plus ?",
+  },
+  {
+    id: "optimisation",
+    icon: "✨",
+    name: "Optimisation annonce",
+    price: "49€",
+    desc: "Rédaction + optimisation de l'ordre des photos",
   },
 ];
 
@@ -87,12 +125,12 @@ export const OffersScreen = () => {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-<View style={styles.header}>
-  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-    <Text style={styles.headerTitle}>Nos offres</Text>
-    <Image source={require("../../assets/logo.png")} style={{ width: 100, height: 60 }} resizeMode="contain" />
-  </View>
-</View>
+      <View style={styles.header}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <Text style={styles.headerTitle}>Nos offres</Text>
+          <Image source={require("../../assets/logo.png")} style={{ width: 100, height: 60 }} resizeMode="contain" />
+        </View>
+      </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
@@ -132,6 +170,19 @@ export const OffersScreen = () => {
               Grâce à une analyse experte en home staging, nous adaptons des recommandations concrètes et illustrées à votre intérieur et votre marché.
             </Text>
           </View>
+
+          {/* Offres PRO — Lien vers page dédiée */}
+          <TouchableOpacity
+            style={styles.proLink}
+            onPress={() => nav.navigate("ProOffers")}
+          >
+            <Text style={styles.proLinkIcon}>👔</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.proLinkTitle}>Vous êtes professionnel ?</Text>
+              <Text style={styles.proLinkSub}>Découvrez nos offres PRO</Text>
+            </View>
+            <Text style={styles.proLinkArrow}>→</Text>
+          </TouchableOpacity>
 
           {/* Toggle */}
           <View style={styles.toggle}>
@@ -178,16 +229,33 @@ export const OffersScreen = () => {
             </View>
           ))}
 
+          {/* Options complémentaires — seulement pour bien vide */}
+          {tab === "vide" && (
+            <>
+              <Text style={styles.optionsTitle}>Options complémentaires</Text>
+              {OPTIONS_COMPLEMENTAIRES.map((opt) => (
+                <View key={opt.id} style={styles.optionCard}>
+                  <Text style={styles.optionIcon}>{opt.icon}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.optionName}>{opt.name}</Text>
+                    <Text style={styles.optionDesc}>{opt.desc}</Text>
+                  </View>
+                  <Text style={styles.optionPrice}>{opt.price}</Text>
+                </View>
+              ))}
+            </>
+          )}
+
         </View>
         {/* CTA Analyser */}
-<TouchableOpacity
-  style={styles.ctaAnalyze}
-  onPress={() => nav.navigate("Analyze")}
->
-  <Text style={styles.ctaAnalyzeText}>
-    Analyser mon bien maintenant →
-  </Text>
-</TouchableOpacity>
+        <TouchableOpacity
+          style={styles.ctaAnalyze}
+          onPress={() => nav.navigate("Analyze")}
+        >
+          <Text style={styles.ctaAnalyzeText}>
+            Analyser mon bien maintenant →
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -203,15 +271,17 @@ const styles = StyleSheet.create({
     fontSize: 17, fontWeight: "700", color: COLORS.dark,
     marginBottom: 16, textAlign: "center", lineHeight: 24,
   },
-ctaAnalyze: {
-  backgroundColor: COLORS.dark,
-  borderRadius: 13, padding: 16,
-  alignItems: "center", marginTop: 8, marginBottom: 20,
-  borderWidth: 1, borderColor: COLORS.gold,
-},
-ctaAnalyzeText: {
-  color: COLORS.gold, fontSize: 14, fontWeight: "600",
-},
+
+  ctaAnalyze: {
+    backgroundColor: COLORS.dark,
+    borderRadius: 13, padding: 16,
+    alignItems: "center", marginTop: 8, marginBottom: 20,
+    borderWidth: 1, borderColor: COLORS.gold,
+  },
+  ctaAnalyzeText: {
+    color: COLORS.gold, fontSize: 14, fontWeight: "600",
+  },
+
   situationBlock: { backgroundColor: COLORS.dark, borderRadius: 14, padding: 16, marginBottom: 12 },
   situationHeader: { flexDirection: "row", alignItems: "flex-start", gap: 10, marginBottom: 12 },
   situationIcon: { fontSize: 24 },
@@ -219,8 +289,15 @@ ctaAnalyzeText: {
   situationAccent: { fontSize: 11, color: COLORS.gold, fontStyle: "italic" },
   situationText: { fontSize: 11, color: "rgba(255,255,255,0.7)", lineHeight: 18 },
   bold: { fontWeight: "700", color: "#fff" },
-  freeLink: { marginTop: 12, borderTopWidth: 0.5, borderTopColor: "rgba(255,255,255,0.1)", paddingTop: 12 },
-  freeLinkText: { fontSize: 11, color: COLORS.gold, fontWeight: "500" },
+
+  proLink: {
+    backgroundColor: COLORS.dark, borderRadius: 14, padding: 16,
+    marginBottom: 16, flexDirection: "row", alignItems: "center", gap: 12,
+  },
+  proLinkIcon: { fontSize: 24 },
+  proLinkTitle: { fontSize: 14, fontWeight: "600", color: "#fff", marginBottom: 2 },
+  proLinkSub: { fontSize: 10, color: COLORS.gold, fontStyle: "italic" },
+  proLinkArrow: { fontSize: 18, color: COLORS.gold },
 
   toggle: {
     flexDirection: "row", backgroundColor: COLORS.dark,
@@ -247,4 +324,15 @@ ctaAnalyzeText: {
   featureRow: { flexDirection: "row", gap: 8, marginBottom: 6, alignItems: "flex-start" },
   featureCheck: { fontSize: 11, color: COLORS.gold, fontWeight: "600", marginTop: 1 },
   featureText: { fontSize: 11, color: COLORS.grayDark, flex: 1, lineHeight: 16 },
+
+  optionsTitle: { fontSize: 13, fontWeight: "600", color: COLORS.dark, marginTop: 16, marginBottom: 10 },
+  optionCard: {
+    backgroundColor: COLORS.goldLight, borderRadius: 12,
+    padding: 12, marginBottom: 8, flexDirection: "row", alignItems: "center", gap: 10,
+    borderWidth: 0.5, borderColor: COLORS.goldMid,
+  },
+  optionIcon: { fontSize: 20 },
+  optionName: { fontSize: 12, fontWeight: "600", color: COLORS.goldDark, marginBottom: 2 },
+  optionDesc: { fontSize: 10, color: COLORS.goldDark },
+  optionPrice: { fontSize: 14, fontWeight: "700", color: COLORS.goldDark },
 });
