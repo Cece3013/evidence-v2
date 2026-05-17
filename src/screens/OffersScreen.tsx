@@ -116,12 +116,6 @@ export const OffersScreen = () => {
               <Text style={styles.bold}>guidés et validés par une expertise immobilière</Text>
               {", donc crédibles et adaptés au bien.\n\nRésultat : plus de clics, plus de visites, moins de négociation."}
             </Text>
-            <TouchableOpacity
-              style={styles.freeLink}
-              onPress={() => nav.navigate("FreeTrial")}
-            >
-              <Text style={styles.freeLinkText}>Tester gratuitement — 1 photo sans inscription →</Text>
-            </TouchableOpacity>
           </View>
 
           {/* Bien habité — encart noir */}

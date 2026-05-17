@@ -1,3 +1,32 @@
+export const COLORS = {
+  gold: '#c8a96e',
+  goldLight: '#fdf6ec',
+  goldMid: '#f0d9b5',
+  goldDark: '#a07c3e',
+  dark: '#1a1a1a',
+  dark2: '#2a2a2a',
+  white: '#ffffff',
+  offWhite: '#f8f7f4',
+  beige: '#e8e4de',
+  beigeMid: '#d4cdc4',
+  gray: '#888888',
+  grayLight: '#f0ece8',
+  grayDark: '#555555',
+  success: '#22c55e',
+  successBg: '#f0faf0',
+  successBorder: '#c0e0c0',
+  successText: '#2d6a32',
+  warning: '#f0d9b5',
+  warningBg: '#fff8f0',
+  warningText: '#8a6020',
+  stripePurple: '#635bff',
+  border: '#e8e4de',
+};
+
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.evidence-homestaging.fr';
+export const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_KEY || 'pk_live_XXXX';
+export const FREE_TRIAL_COOLDOWN_HOURS = 24;
+
 export const FORMULAS = {
   // BIENS VIDES — "PROJECTION"
   decouverte: {
@@ -10,7 +39,7 @@ export const FORMULAS = {
     type: 'vide',
     features: [
       '2 photos maximum',
-      'Avant / Après IA réaliste',
+      'Avant / Après',
       '3 conseils actionnables',
       'Multi-vue (Salon & Chambre)',
       'Téléchargement HD illimité',
@@ -31,7 +60,7 @@ export const FORMULAS = {
     type: 'vide',
     features: [
       '5 photos maximum',
-      'Avant / Après IA réaliste',
+      'Avant / Après',
       '3 conseils actionnables',
       'Multi-vue (Salon & Chambre)',
       'Téléchargement HD illimité',
@@ -52,7 +81,7 @@ export const FORMULAS = {
     type: 'vide',
     features: [
       'Jusqu\'à 8 photos maximum',
-      'Avant / Après IA réaliste',
+      'Avant / Après',
       '3 conseils actionnables',
       'Multi-vue (Salon & Chambre)',
       'Téléchargement HD illimité',
