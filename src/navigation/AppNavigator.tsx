@@ -43,7 +43,6 @@ const TabNavigator = () => (
           Home: "⌂",
           Offers: "✦",
           Analyze: "⊕",
-          Gallery: "◈",
           Account: "◯",
         };
         return (
@@ -79,11 +78,6 @@ const TabNavigator = () => (
       name="Analyze"
       component={AnalyzeScreen}
       options={{ tabBarLabel: "Analyser" }}
-    />
-    <Tab.Screen
-      name="Gallery"
-      component={ResultScreen}
-      options={{ tabBarLabel: "Galerie" }}
     />
     <Tab.Screen
       name="Account"
