@@ -9,6 +9,7 @@ import { AboutScreen } from "../screens/AboutScreen";
 import { AnalyzeScreen } from "../screens/AnalyzeScreen";
 import { OffersScreen } from "../screens/OffersScreen";
 import { ProOffersScreen } from "../screens/ProOffersScreen";
+import { ProSubscriptionScreen } from "../screens/ProSubscriptionScreen";
 import { AccountScreen } from "../screens/AccountScreen";
 import { FreeTrialScreen } from "../screens/FreeTrialScreen";
 import { ConfigureScreen } from "../screens/ConfigureScreen";
@@ -135,6 +136,11 @@ export const AppNavigator = () => (
   name="ProOffers"
   component={ProOffersScreen}
   options={{ title: "Offres PRO" }}
+/>
+<Stack.Screen
+  name="ProSubscription"
+  component={ProSubscriptionScreen}
+  options={{ title: "S'abonner" }}
 />
 <Stack.Screen
   name="Upload"

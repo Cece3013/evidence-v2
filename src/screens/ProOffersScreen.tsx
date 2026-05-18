@@ -107,14 +107,14 @@ export const ProOffersScreen = () => {
                   <Text style={styles.featureText}>{feat}</Text>
                 </View>
               ))}
-              <TouchableOpacity
-                style={[styles.cta, offer.popular && styles.ctaPrimary]}
-                onPress={() => alert("Contacter l'équipe pour activer cette offre")}
-              >
-                <Text style={[styles.ctaText, offer.popular && styles.ctaTextPrimary]}>
-                  Choisir cette offre →
-                </Text>
-              </TouchableOpacity>
+             <TouchableOpacity
+  style={[styles.cta, offer.popular && styles.ctaPrimary]}
+  onPress={() => navigation.navigate("ProSubscription", { offerId: offer.id })}
+>
+  <Text style={[styles.ctaText, offer.popular && styles.ctaTextPrimary]}>
+    S'abonner →
+  </Text>
+</TouchableOpacity>
             </View>
           ))}
 
