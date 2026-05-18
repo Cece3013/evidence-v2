@@ -20,6 +20,11 @@ import { ProcessingScreen } from "../screens/ProcessingScreen";
 import { COLORS } from "../constants";
 import { InvoiceScreen } from "../screens/InvoiceScreen";
 import { ProAccountScreen } from "../screens/ProAccountScreen";
+import { ProInvoicesScreen } from "../screens/ProInvoicesScreen";
+import { ProEditDataScreen } from "../screens/ProEditDataScreen";
+import { ProCancelScreen } from "../screens/ProCancelScreen";
+import { ProChangePlanScreen } from "../screens/ProChangePlanScreen";
+import { ProBuyPhotosScreen } from "../screens/ProBuyPhotosScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 const logoImage = require("../../assets/logo.png");
@@ -140,6 +145,31 @@ export const AppNavigator = () => (
   name="ProAccount"
   component={ProAccountScreen}
   options={{ title: "Mon Abonnement" }}
+/>
+<Stack.Screen
+  name="ProEditData"
+  component={ProEditDataScreen}
+  options={{ title: "Modifier mes données" }}
+/>
+<Stack.Screen
+  name="ProCancel"
+  component={ProCancelScreen}
+  options={{ title: "Résilier" }}
+/>
+<Stack.Screen
+  name="ProChangePlan"
+  component={ProChangePlanScreen}
+  options={{ title: "Modifier mon abonnement" }}
+/>
+<Stack.Screen
+  name="ProBuyPhotos"
+  component={ProBuyPhotosScreen}
+  options={{ title: "Photos supplémentaires" }}
+/>
+<Stack.Screen
+  name="ProInvoices"
+  component={ProInvoicesScreen}
+  options={{ title: "Mes Factures" }}
 />
 <Stack.Screen
   name="Upload"
