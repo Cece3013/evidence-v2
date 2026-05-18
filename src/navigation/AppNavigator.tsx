@@ -11,7 +11,6 @@ import { OffersScreen } from "../screens/OffersScreen";
 import { ProOffersScreen } from "../screens/ProOffersScreen";
 import { ProSubscriptionScreen } from "../screens/ProSubscriptionScreen";
 import { AccountScreen } from "../screens/AccountScreen";
-import { FreeTrialScreen } from "../screens/FreeTrialScreen";
 import { ConfigureScreen } from "../screens/ConfigureScreen";
 import { UploadScreen } from "../screens/UploadScreen";
 import { PaymentScreen } from "../screens/PaymentScreen";
@@ -20,7 +19,7 @@ import { PDFReportScreen } from "../screens/PDFReportScreen";
 import { ProcessingScreen } from "../screens/ProcessingScreen";
 import { COLORS } from "../constants";
 import { InvoiceScreen } from "../screens/InvoiceScreen";
-import { RegenerationScreen } from "../screens/InvoiceProcessingRegenScreens";
+import { ProAccountScreen } from "../screens/ProAccountScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 const logoImage = require("../../assets/logo.png");
@@ -123,11 +122,6 @@ export const AppNavigator = () => (
           options={{ title: "Nos offres" }}
         />
         <Stack.Screen
-          name="FreeTrial"
-          component={FreeTrialScreen}
-          options={{ title: "Essai gratuit" }}
-        />
-        <Stack.Screen
   name="Configure"
   component={UploadScreen}
   options={{ title: "Mes photos" }}
@@ -141,6 +135,11 @@ export const AppNavigator = () => (
   name="ProSubscription"
   component={ProSubscriptionScreen}
   options={{ title: "S'abonner" }}
+/>
+<Stack.Screen
+  name="ProAccount"
+  component={ProAccountScreen}
+  options={{ title: "Mon Abonnement" }}
 />
 <Stack.Screen
   name="Upload"
@@ -171,11 +170,6 @@ export const AppNavigator = () => (
           name="Invoice"
           component={InvoiceScreen}
           options={{ title: "Facture" }}
-        />
-        <Stack.Screen
-          name="Regeneration"
-          component={RegenerationScreen}
-          options={{ title: "Régénérer" }}
         />
         <Stack.Screen
           name="Login"
