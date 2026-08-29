@@ -19,67 +19,88 @@ export const PaymentScreen = () => {
   const [clientPhone, setClientPhone] = useState("");
   const [propertyAddress, setPropertyAddress] = useState("");
   const [propertyType, setPropertyType] = useState<"Appartement" | "Maison" | null>(null);
+  const [propertySize, setPropertySize] = useState<"Studio" | "T1" | "T2" | "T3" | "T4" | "T5" | "Autre" | null>(null);
+  const [exteriorFeatures, setExteriorFeatures] = useState<string[]>([]);
 
   const formulaId = orderConfig?.formulaId || "essentiel";
-  const formula = Object.values(FORMULAS).find((f) => f.id === formulaId);
-  const price = formula?.price || 9.90;
+  const formula = Object.values(FORMULAS).find((f: any) => f.id === formulaId);
+  const price = (formula as any)?.price || 9.90;
   const priceHT = parseFloat((price / 1.20).toFixed(2));
   const tva = parseFloat((price - priceHT).toFixed(2));
-  const formulaName = formula?.name || "Essentiel";
+  const formulaName = (formula as any)?.name || "Essentiel";
   const photoCount = orderConfig?.photos?.length || 0;
   const isHabite = orderConfig?.isHabite || false;
-  const typePrestation = isHabite ? "Bien habité - Expert" : "Bien vide - IA";
+  
+  // Suppression de " - IA" pour biens vides
+  const typePrestation = isHabite ? "Bien habité - Expert" : "Bien vide";
 
-  const handlePay = async () => {
-    if (!clientName.trim()) {
-      Alert.alert("Champ requis", "Veuillez saisir votre nom.");
-      return;
-    }
-    if (!clientEmail.includes('@')) {
-      Alert.alert("Email invalide", "Veuillez saisir un email valide.");
-      return;
-    }
-    if (!cgvAccepted) {
-      Alert.alert("Validation requise", "Veuillez accepter les CGV.");
-      return;
-    }
+  const toggleExterior = (feature: string) => {
+    setExteriorFeatures((prev) =>
+      prev.includes(feature) ? prev.filter((f) => f !== feature) : [...prev, feature]
+    );
+  };
 
-    // Sauvegarder les infos client dans le store
-    setOrderConfig({
+ const handlePay = async () => {
+  if (!clientName.trim()) {
+    Alert.alert("Champ requis", "Veuillez saisir votre nom.");
+    return;
+  }
+  if (!clientEmail.includes('@')) {
+    Alert.alert("Email invalide", "Veuillez saisir un email valide.");
+    return;
+  }
+  if (!propertySize) {
+    Alert.alert("Champ requis", "Veuillez sélectionner la taille du logement.");
+    return;
+  }
+  if (!cgvAccepted) {
+    Alert.alert("Validation requise", "Veuillez accepter les CGV.");
+    return;
+  }
+
+  setLoading(true);
+  try {
+    const API_URL = 'https://poetic-youthfulness-production-fecb.up.railway.app';
+    const orderId = "ORD-" + Date.now();
+
+    const payload = {
+      photos: orderConfig?.photos || [],
       clientName: clientName.trim(),
       clientEmail: clientEmail.toLowerCase().trim(),
       clientPhone: clientPhone.trim(),
       propertyAddress: propertyAddress.trim(),
-      propertyType: propertyType || undefined,
-    });
+      propertyType: propertyType || null,
+      propertySize: propertySize,           // variable locale directe
+      exteriorFeatures: exteriorFeatures,   // variable locale directe
+      isHabite: orderConfig?.isHabite || false,
+      orderId,
+      formulaId: orderConfig?.formulaId || "essentiel",
+      formulaLabel: formulaName,
+    };
 
-    setLoading(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      const orderId = "DEV-" + Date.now();
-      navigation.navigate("Invoice", {
-        orderId,
-        invoice: {
-          invoiceNumber: "EHS-2026-" + Math.floor(Math.random() * 99999).toString().padStart(5, "0"),
-          date: new Date().toISOString(),
-          clientName: clientName.trim(),
-          clientEmail: clientEmail.toLowerCase().trim(),
-          formulaName,
-          roomType: orderConfig?.roomType || "Multiple pièces",
-          photoCount,
-          multiVue: orderConfig?.multiVue || false,
-          priceHT,
-          tva,
-          priceTTC: price,
-          pdfUrl: "",
-        },
-      });
-    } catch (err) {
-      Alert.alert("Erreur", "Une erreur est survenue. Réessayez.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    console.log('[Payment] payload:', payload);
+
+ // Sauvegarder dans le store pour que ProcessingScreen y ait accès
+setOrderConfig({
+  clientName: clientName.trim(),
+  clientEmail: clientEmail.toLowerCase().trim(),
+  clientPhone: clientPhone.trim(),
+  propertyAddress: propertyAddress.trim(),
+  propertyType: propertyType || undefined,
+  propertySize,
+  exteriorFeatures,
+  formulaLabel: formulaName,
+});
+
+// Naviguer vers ProcessingScreen qui fera l'appel backend
+navigation.navigate("Processing", { orderId });
+  } catch (err) {
+    Alert.alert("Erreur", "Une erreur est survenue. Réessayez.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -170,6 +191,39 @@ export const PaymentScreen = () => {
                 </TouchableOpacity>
               ))}
             </View>
+
+            {/* Taille du logement */}
+            <Text style={styles.fieldLabel}>Taille du logement *</Text>
+            <View style={styles.sizeGrid}>
+              {(["Studio", "T1", "T2", "T3", "T4", "T5", "Autre"] as const).map((size) => (
+                <TouchableOpacity
+                  key={size}
+                  style={[styles.sizeBtn, propertySize === size && styles.sizeBtnActive]}
+                  onPress={() => setPropertySize(size)}
+                >
+                  <Text style={[styles.sizeBtnText, propertySize === size && styles.sizeBtnTextActive]}>
+                    {size}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Extérieurs */}
+            <Text style={styles.fieldLabel}>Extérieurs</Text>
+            <View style={styles.exteriorRow}>
+              {(["Balcon", "Cour", "Terrasse"] as const).map((feature) => (
+                <TouchableOpacity
+                  key={feature}
+                  style={[styles.exteriorCheckbox, exteriorFeatures.includes(feature) && styles.exteriorCheckboxActive]}
+                  onPress={() => toggleExterior(feature)}
+                >
+                  <View style={[styles.checkbox, exteriorFeatures.includes(feature) && styles.checkboxChecked]}>
+                    {exteriorFeatures.includes(feature) && <Text style={styles.checkmark}>✓</Text>}
+                  </View>
+                  <Text style={styles.exteriorLabel}>{feature}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
 
           {/* Paiement Stripe */}
@@ -236,12 +290,12 @@ export const PaymentScreen = () => {
           )}
 
           <TouchableOpacity
-            style={[styles.payBtn, (loading || !cgvAccepted) && styles.payBtnDisabled]}
+            style={[styles.payBtn, (loading || !cgvAccepted || !propertySize) && styles.payBtnDisabled]}
             onPress={handlePay}
-            disabled={loading || !cgvAccepted}
+            disabled={loading || !cgvAccepted || !propertySize}
           >
             <Text style={styles.payBtnText}>
-              {loading ? "Traitement en cours..." : `Payer ${price.toFixed(2).replace(".", ",")}€`}
+              {loading ? "Traitement en cours..." : `Lancer l'analyse — ${price.toFixed(2).replace(".", ",")}€`}
             </Text>
           </TouchableOpacity>
 
@@ -310,11 +364,39 @@ const styles = StyleSheet.create({
   typeBtnActive: { borderColor: COLORS.gold, backgroundColor: COLORS.goldLight },
   typeBtnText: { fontSize: 11, color: COLORS.grayDark },
   typeBtnTextActive: { color: COLORS.goldDark, fontWeight: "500" },
+  sizeGrid: {
+    flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 10,
+  },
+  sizeBtn: {
+    flex: 1, minWidth: "30%", padding: 8, borderRadius: 8,
+    borderWidth: 0.5, borderColor: COLORS.border,
+    backgroundColor: COLORS.offWhite, alignItems: "center",
+  },
+  sizeBtnActive: { borderColor: COLORS.gold, backgroundColor: COLORS.goldLight },
+  sizeBtnText: { fontSize: 10, color: COLORS.grayDark },
+  sizeBtnTextActive: { color: COLORS.goldDark, fontWeight: "600" },
+  exteriorRow: { flexDirection: "row", gap: 10, marginBottom: 10, flexWrap: "wrap" },
+  exteriorCheckbox: {
+    flexDirection: "row", alignItems: "center", gap: 6,
+    backgroundColor: COLORS.offWhite, borderRadius: 8,
+    borderWidth: 0.5, borderColor: COLORS.border,
+    padding: 8, flex: 1, minWidth: "45%",
+  },
+  exteriorCheckboxActive: { borderColor: COLORS.gold, backgroundColor: "#fdf8f1" },
+  exteriorLabel: { fontSize: 11, color: COLORS.grayDark, fontWeight: "500" },
+  checkbox: {
+    width: 18, height: 18, borderRadius: 4,
+    borderWidth: 1.5, borderColor: COLORS.gray,
+    alignItems: "center", justifyContent: "center",
+    flexShrink: 0,
+  },
+  checkboxChecked: { backgroundColor: COLORS.gold, borderColor: COLORS.gold },
+  checkmark: { color: "#fff", fontSize: 11, fontWeight: "700" },
   stripeHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 14 },
   stripeTitle: { fontSize: 12, fontWeight: "500", color: COLORS.dark },
   stripeBadge: { backgroundColor: "#635bff", borderRadius: 4, paddingHorizontal: 7, paddingVertical: 3 },
   stripeBadgeText: { color: "#fff", fontSize: 9, fontWeight: "600" },
-  fieldLabel: { fontSize: 9, color: COLORS.gray, marginBottom: 4 },
+  fieldLabel: { fontSize: 9, color: COLORS.gray, marginBottom: 4, fontWeight: "500" },
   fieldInput: {
     backgroundColor: COLORS.offWhite, borderRadius: 8,
     borderWidth: 0.5, borderColor: COLORS.border,
@@ -336,14 +418,6 @@ const styles = StyleSheet.create({
     borderWidth: 0.5, borderColor: COLORS.border,
     padding: 14, marginBottom: 12,
   },
-  checkbox: {
-    width: 22, height: 22, borderRadius: 5,
-    borderWidth: 1.5, borderColor: COLORS.gray,
-    alignItems: "center", justifyContent: "center",
-    marginTop: 1, flexShrink: 0,
-  },
-  checkboxChecked: { backgroundColor: COLORS.gold, borderColor: COLORS.gold },
-  checkmark: { color: "#fff", fontSize: 13, fontWeight: "700" },
   cgvText: { fontSize: 10, color: COLORS.grayDark, flex: 1, lineHeight: 16 },
   cgvLink: { color: COLORS.gold, textDecorationLine: "underline" },
   devNotice: {

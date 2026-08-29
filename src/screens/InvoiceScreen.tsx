@@ -86,7 +86,6 @@ export const InvoiceScreen = () => {
             <Text style={styles.sectionTitle}>DÉTAIL DE LA COMMANDE</Text>
             <InvoiceRow label="Formule" value={invoice?.formulaName || ""} />
             <InvoiceRow label="Photos" value={`${invoice?.photoCount} photo(s)`} />
-            <InvoiceRow label="Régénération" value="Illimitée" valueColor={COLORS.gold} />
             <View style={styles.amountDivider} />
             <InvoiceRow label="Sous-total HT" value={`${invoice?.priceHT?.toFixed(2).replace(".", ",")}€`} />
             <InvoiceRow label="TVA 20%" value={`${invoice?.tva?.toFixed(2).replace(".", ",")}€`} />

@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
-import { Text, View, Image } from "react-native";
+import { Text, View, Image, Linking } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { LoginScreen } from '../screens/LoginScreen';
 import { AboutScreen } from "../screens/AboutScreen";
@@ -11,7 +11,6 @@ import { OffersScreen } from "../screens/OffersScreen";
 import { ProOffersScreen } from "../screens/ProOffersScreen";
 import { ProSubscriptionScreen } from "../screens/ProSubscriptionScreen";
 import { AccountScreen } from "../screens/AccountScreen";
-import { ConfigureScreen } from "../screens/ConfigureScreen";
 import { UploadScreen } from "../screens/UploadScreen";
 import { PaymentScreen } from "../screens/PaymentScreen";
 import { ResultScreen } from "../screens/ResultScreen";
@@ -25,13 +24,13 @@ import { ProEditDataScreen } from "../screens/ProEditDataScreen";
 import { ProCancelScreen } from "../screens/ProCancelScreen";
 import { ProChangePlanScreen } from "../screens/ProChangePlanScreen";
 import { ProBuyPhotosScreen } from "../screens/ProBuyPhotosScreen";
+
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
-const logoImage = require("../../assets/logo.png");
+
 const TabNavigator = () => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
-      
       headerShown: false,
       tabBarStyle: {
         backgroundColor: COLORS.white,
@@ -70,143 +69,72 @@ const TabNavigator = () => (
       },
     })}
   >
-    <Tab.Screen
-      name="Home"
-      component={AboutScreen}
-      options={{ tabBarLabel: "Accueil" }}
-    />
-    <Tab.Screen
-      name="Offers"
-      component={OffersScreen}
-      options={{ tabBarLabel: "Offres" }}
-    />
-    
-    <Tab.Screen
-      name="Analyze"
-      component={AnalyzeScreen}
-      options={{ tabBarLabel: "Analyser" }}
-    />
-    <Tab.Screen
-      name="Account"
-      component={AccountScreen}
-      options={{ tabBarLabel: "Compte" }}
-    />
+    <Tab.Screen name="Home" component={AboutScreen} options={{ tabBarLabel: "Accueil" }} />
+    <Tab.Screen name="Offers" component={OffersScreen} options={{ tabBarLabel: "Offres" }} />
+    <Tab.Screen name="Analyze" component={AnalyzeScreen} options={{ tabBarLabel: "Analyser" }} />
+    <Tab.Screen name="Account" component={AccountScreen} options={{ tabBarLabel: "Compte" }} />
   </Tab.Navigator>
 );
 
-export const AppNavigator = () => (
-  <SafeAreaProvider>
-    <NavigationContainer>
-      <Stack.Navigator
-      screenOptions={{
-  headerShown: true,
-  headerStyle: { backgroundColor: COLORS.dark },
-  headerTintColor: COLORS.gold,
-  headerTitleStyle: { color: "#fff", fontSize: 14 },
-  headerTitle: () => (
-    <Image
-      source={require("../../assets/logo.png")}
-      style={{ 
-        width: 180, 
-        height: 60,
-      }}
-      resizeMode="contain"      
-    />
-  ),
-}}
-  
-      >
-        <Stack.Screen
-          name="Main"
-          component={TabNavigator}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Offers"
-          component={OffersScreen}
-          options={{ title: "Nos offres" }}
-        />
-        <Stack.Screen
-  name="Configure"
-  component={UploadScreen}
-  options={{ title: "Mes photos" }}
-/>
-<Stack.Screen
-  name="ProOffers"
-  component={ProOffersScreen}
-  options={{ title: "Offres PRO" }}
-/>
-<Stack.Screen
-  name="ProSubscription"
-  component={ProSubscriptionScreen}
-  options={{ title: "S'abonner" }}
-/>
-<Stack.Screen
-  name="ProAccount"
-  component={ProAccountScreen}
-  options={{ title: "Mon Abonnement" }}
-/>
-<Stack.Screen
-  name="ProEditData"
-  component={ProEditDataScreen}
-  options={{ title: "Modifier mes données" }}
-/>
-<Stack.Screen
-  name="ProCancel"
-  component={ProCancelScreen}
-  options={{ title: "Résilier" }}
-/>
-<Stack.Screen
-  name="ProChangePlan"
-  component={ProChangePlanScreen}
-  options={{ title: "Modifier mon abonnement" }}
-/>
-<Stack.Screen
-  name="ProBuyPhotos"
-  component={ProBuyPhotosScreen}
-  options={{ title: "Photos supplémentaires" }}
-/>
-<Stack.Screen
-  name="ProInvoices"
-  component={ProInvoicesScreen}
-  options={{ title: "Mes Factures" }}
-/>
-<Stack.Screen
-  name="Upload"
-  component={UploadScreen}
-  options={{ title: "Mes photos" }}
-/>
-        <Stack.Screen
-          name="Payment"
-          component={PaymentScreen}
-          options={{ title: "Paiement" }}
-        />
-        <Stack.Screen
-          name="Processing"
-          component={ProcessingScreen}
-          options={{ title: "Analyse en cours" }}
-        />
-        <Stack.Screen
-          name="Result"
-          component={ResultScreen}
-          options={{ title: "Resultat" }}
-        />
-        <Stack.Screen
-          name="About"
-          component={AboutScreen}
-          options={{ title: "Qui sommes-nous" }}
-        />
-        <Stack.Screen
-          name="Invoice"
-          component={InvoiceScreen}
-          options={{ title: "Facture" }}
-        />
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-          options={{ title: 'Connexion' }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
-  </SafeAreaProvider>
-); 
+export const AppNavigator = () => {
+  const navigationRef = React.useRef<any>(null);
+
+  useEffect(() => {
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      handleDeepLink(url, navigationRef.current);
+    });
+    Linking.getInitialURL().then((url) => {
+      if (url) handleDeepLink(url, navigationRef.current);
+    });
+    return () => subscription.remove();
+  }, []);
+
+  const handleDeepLink = (url: string, navigation: any) => {
+    if (!navigation || !url) return;
+    if (url.includes('pro-account')) {
+      const sessionId = url.split('session_id=')[1];
+      navigation.navigate('ProAccount', { sessionId });
+    }
+  };
+
+  return (
+    <SafeAreaProvider>
+      <NavigationContainer ref={navigationRef}>
+        <Stack.Navigator
+          screenOptions={{
+            headerShown: true,
+            headerStyle: { backgroundColor: COLORS.dark },
+            headerTintColor: COLORS.gold,
+            headerTitleStyle: { color: "#fff", fontSize: 14 },
+            headerTitle: () => (
+              <Image
+                source={require("../../assets/logo.png")}
+                style={{ width: 180, height: 60 }}
+                resizeMode="contain"
+              />
+            ),
+          }}
+        >
+          <Stack.Screen name="Main" component={TabNavigator} options={{ headerShown: false }} />
+          <Stack.Screen name="Offers" component={OffersScreen} options={{ title: "Nos offres" }} />
+          <Stack.Screen name="Configure" component={UploadScreen} options={{ title: "Mes photos" }} />
+          <Stack.Screen name="ProOffers" component={ProOffersScreen} options={{ title: "Offres PRO" }} />
+          <Stack.Screen name="ProSubscription" component={ProSubscriptionScreen} options={{ title: "S'abonner" }} />
+          <Stack.Screen name="ProAccount" component={ProAccountScreen} options={{ title: "Mon Abonnement" }} />
+          <Stack.Screen name="ProEditData" component={ProEditDataScreen} options={{ title: "Modifier mes données" }} />
+          <Stack.Screen name="ProCancel" component={ProCancelScreen} options={{ title: "Résilier" }} />
+          <Stack.Screen name="ProChangePlan" component={ProChangePlanScreen} options={{ title: "Modifier mon abonnement" }} />
+          <Stack.Screen name="ProBuyPhotos" component={ProBuyPhotosScreen} options={{ title: "Photos supplémentaires" }} />
+          <Stack.Screen name="ProInvoices" component={ProInvoicesScreen} options={{ title: "Mes Factures" }} />
+          <Stack.Screen name="Upload" component={UploadScreen} options={{ title: "Mes photos" }} />
+          <Stack.Screen name="Payment" component={PaymentScreen} options={{ title: "Paiement" }} />
+          <Stack.Screen name="Processing" component={ProcessingScreen} options={{ title: "Analyse en cours" }} />
+          <Stack.Screen name="Result" component={ResultScreen} options={{ title: "Resultat" }} />
+          <Stack.Screen name="About" component={AboutScreen} options={{ title: "Qui sommes-nous" }} />
+          <Stack.Screen name="Invoice" component={InvoiceScreen} options={{ title: "Facture" }} />
+          <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'Connexion' }} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
+  );
+};

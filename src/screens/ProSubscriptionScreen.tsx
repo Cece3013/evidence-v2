@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert, ActivityIndicator, Image } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert, ActivityIndicator, Image, Linking } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "../constants";
 
 const PRO_OFFERS_MAP: Record<string, { name: string; price: number; priceId: string }> = {
-  pro_starter: { name: "PRO Starter", price: 49, priceId: "price_1TYBfHBtigY0O7pl47IpqnTG" },
-  pro_business: { name: "PRO Business", price: 99, priceId: "price_1TYBghBtigY0O7pl9jpFVbFb" },
-  pro_agency: { name: "PRO Agency", price: 199, priceId: "price_1TYBhnBtigY0O7plC1Njtp7T" },
+  pro_starter: { name: "PRO Starter", price: 49, priceId: "price_1TjdIzBtigY0O7pljXLznLIs" },
+  pro_business: { name: "PRO Business", price: 99, priceId: "price_1TjdJIBtigY0O7plmAViGr2c" },
+  pro_agency: { name: "PRO Agency", price: 199, priceId: "price_1TjdJbBtigY0O7plhTK1GXe4" },
 };
 
 export const ProSubscriptionScreen = () => {
@@ -81,10 +81,10 @@ export const ProSubscriptionScreen = () => {
 
       // Rediriger vers Stripe Checkout
       if (data.checkoutUrl) {
-        // En production, ouvrir l'URL Stripe
         Alert.alert("Succès", "Abonnement créé ! Redirection vers le paiement...");
-        // navigation.navigate("ProAccount", { subscriptionId: data.subscriptionId });
+        await Linking.openURL(data.checkoutUrl);
       }
+      
     } catch (error) {
       Alert.alert("Erreur", "Erreur réseau");
       console.error(error);

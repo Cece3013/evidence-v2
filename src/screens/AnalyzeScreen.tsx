@@ -37,10 +37,11 @@ export const AnalyzeScreen = () => {
     setShowFormulaModal(true);
   };
 
-  const handleFormulaSelect = (formulaId: string, priceNum: number, maxPhotos: number) => {
+ const handleFormulaSelect = (formulaId: string, priceNum: number, maxPhotos: number, formulaName: string, formulaPrice: string) => {
     setOrderConfig({
       formulaId,
       formulaPrice: priceNum,
+      formulaLabel: `${formulaName} — ${formulaPrice}`,
       propertyType: propertyType || undefined,
       isHabite: situationType === "habite",
     });
@@ -126,7 +127,7 @@ export const AnalyzeScreen = () => {
               <TouchableOpacity
                 key={f.id}
                 style={[styles.formulaCard, f.popular && styles.formulaCardFeatured]}
-                onPress={() => handleFormulaSelect(f.id, f.priceNum, f.maxPhotos)}
+               onPress={() => handleFormulaSelect(f.id, f.priceNum, f.maxPhotos, f.name, f.price)}
               >
                 {f.popular && (
                   <View style={styles.formulaBadge}>

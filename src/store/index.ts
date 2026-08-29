@@ -12,14 +12,17 @@ export interface OrderConfig {
   photos: any[];
   promptGenerated: string;
   propertyType?: string;
+  propertySize?: "Studio" | "T1" | "T2" | "T3" | "T4" | "T5" | "Autre";
+  exteriorFeatures?: string[];
   roomCount?: string;
   exteriors?: string[];
   profile?: string;
   isHabite?: boolean;
   clientName?: string;
-clientEmail?: string;
-clientPhone?: string;
-propertyAddress?: string;
+  clientEmail?: string;
+  clientPhone?: string;
+  propertyAddress?: string;
+  formulaLabel?: string;
 }
 
 export interface PhotoItem {

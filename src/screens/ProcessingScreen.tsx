@@ -87,10 +87,12 @@ export const ProcessingScreen = () => {
   clientPhone: orderConfig?.clientPhone || null,
   propertyAddress: orderConfig?.propertyAddress || null,
   propertyType: orderConfig?.propertyType || null,
+  propertySize: orderConfig?.propertySize || null,    
+  exteriorFeatures: orderConfig?.exteriorFeatures || [], 
   isHabite: orderConfig?.isHabite || false,
   orderId: orderId || `ORD-${Date.now()}`,
   formulaId: orderConfig?.formulaId,
-  formulaLabel: orderConfig?.formulaId === 'essentiel' ? 'Essentiel' : 'Essentiel+',
+  formulaLabel: orderConfig?.formulaLabel || orderConfig?.formulaId || '—',
   isFreeTrialMode: false,
 }),
       });
@@ -137,22 +139,22 @@ export const ProcessingScreen = () => {
           </View>
           <Text style={styles.habiteTitle}>Analyse en cours</Text>
           <Text style={styles.habiteSub}>Notre équipe d'experts traite votre dossier</Text>
-          <View style={styles.habiteDelayCard}>
+         <View style={styles.habiteDelayCard}>
             <Text style={styles.habiteDelayIcon}>⏱️</Text>
             <View>
               <Text style={styles.habiteDelayTitle}>Délai estimé</Text>
               <Text style={styles.habiteDelayVal}>
-                {orderConfig?.formulaId === "premium" ? "24 à 48h" : "48 à 72h"}
+                {orderConfig?.formulaId === "essentiel_habite" ? "48 à 72h" : "24 à 48h"}
               </Text>
             </View>
           </View>
           <View style={styles.habiteValueCard}>
             <Text style={styles.habiteValueTitle}>Rappel de votre formule</Text>
             <Text style={styles.habiteValueName}>
-              {orderConfig?.formulaId === "premium" ? "Premium — 69€" : "Premium+ — 129€"}
+              {orderConfig?.formulaLabel || orderConfig?.formulaId || "—"}
             </Text>
             <Text style={styles.habiteValueDesc}>
-              {orderConfig?.formulaId === "premium"
+              {orderConfig?.formulaId === "essentiel_habite"
                 ? "Jusqu'à 3 pièces · Rapport PDF personnalisé"
                 : "Jusqu'à 6 pièces · Rapport PDF complet"}
             </Text>
@@ -206,7 +208,7 @@ export const ProcessingScreen = () => {
           </View>
           <View style={styles.videContent}>
             <Text style={styles.videRobot}>🤖</Text>
-            <Text style={styles.videMainText}>Création de vos 2 propositions…</Text>
+            <Text style={styles.videMainText}>Création de votre projection…</Text>
             <View style={styles.stepsWrap}>
               {TIMELINE.map((step, i) => {
                 const isDone = i < currentStep;
@@ -226,7 +228,7 @@ export const ProcessingScreen = () => {
             <View style={styles.progressTrack}>
               <Animated.View style={[styles.progressBar, { width: progressWidth }]} />
             </View>
-            <Text style={styles.videNote}>⏱️ 2 propositions en cours de génération…</Text>
+            <Text style={styles.videNote}>⏱️ proposition en cours de génération…</Text>
             {hasError && (
               <Text style={styles.errorNote}>Erreur de connexion — vérifiez votre connexion internet.</Text>
             )}
