@@ -5,10 +5,9 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS } from '../constants';
+import { COLORS, API_URL } from '../constants';
 import { useAppStore } from '../store';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
 export const AccountScreen = () => {
   const nav = useNavigation<any>();
@@ -23,7 +22,17 @@ export const AccountScreen = () => {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/orders/client/${user?.email}`);
+      const res = await fetch(
+        `${API_URL}/api/orders/client/${encodeURIComponent(user?.email || '')}`,
+        { headers: { Authorization: `Bearer ${user?.token || ''}` } }
+      );
+      // Connexion expirée ou ancienne connexion sans jeton : on reconnecte
+      if (res.status === 401 || res.status === 403) {
+        setUser(null);
+        setClientOrders([]);
+        setLoading(false);
+        return;
+      }
       const data = await res.json();
       if (data.orders) setClientOrders(data.orders);
     } catch (e) {
@@ -100,19 +109,25 @@ export const AccountScreen = () => {
                 <View key={i} style={styles.orderCard}>
                   <View style={styles.orderTop}>
                     <Text style={styles.orderName}>{order.formulaLabel || 'Analyse IA'}</Text>
-                    <View style={[styles.orderBadge, { backgroundColor: '#edf7ee' }]}>
-                      <Text style={[styles.orderBadgeText, { color: '#3a7a3e' }]}>Terminé</Text>
+                    <View style={[styles.orderBadge, { backgroundColor: order.pretALivrer ? '#edf7ee' : '#fdf6ec' }]}>
+                      <Text style={[styles.orderBadgeText, { color: order.pretALivrer ? '#3a7a3e' : '#b8892e' }]}>
+                        {order.pretALivrer ? 'Photos disponibles' : 'En préparation'}
+                      </Text>
                     </View>
                   </View>
-                  <Text style={styles.orderMeta}>{formatDate(order.createdAt)}</Text>
-                  <View style={styles.orderActions}>
-                    <TouchableOpacity
-                      style={[styles.actionBtn, { backgroundColor: COLORS.goldLight }]}
-                      onPress={() => nav.navigate('Result')}
-                    >
-                      <Text style={[styles.actionBtnText, { color: COLORS.goldDark }]}>Voir résultat</Text>
-                    </TouchableOpacity>
-                  </View>
+                  <Text style={styles.orderMeta}>{order.reference} · {formatDate(order.createdAt)}</Text>
+                  {order.suiviUrl && (
+                    <View style={styles.orderActions}>
+                      <TouchableOpacity
+                        style={[styles.actionBtn, { backgroundColor: COLORS.goldLight }]}
+                        onPress={() => nav.navigate('Site', { url: order.suiviUrl })}
+                      >
+                        <Text style={[styles.actionBtnText, { color: COLORS.goldDark }]}>
+                          {order.pretALivrer ? 'Voir et télécharger mes photos' : 'Suivre ma commande'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
               ))}
             </>
@@ -132,7 +147,7 @@ export const AccountScreen = () => {
                       </Text>
                     </View>
                   </View>
-                  <Text style={styles.orderMeta}>{formatDate(order.createdAt)}</Text>
+                  <Text style={styles.orderMeta}>{order.reference} · {formatDate(order.createdAt)}</Text>
                   {order.pdfUrl && (
                     <TouchableOpacity
                       style={[styles.actionBtn, { backgroundColor: '#edf7ee', marginTop: 8 }]}
@@ -169,7 +184,11 @@ export const AccountScreen = () => {
             <TouchableOpacity
               key={item.label}
               style={styles.menuItem}
-              onPress={() => item.screen && nav.navigate(item.screen)}
+              onPress={() =>
+                item.screen
+                  ? nav.navigate(item.screen)
+                  : Linking.openURL('mailto:contact@evidence-homestaging.fr')
+              }
             >
               <View style={[styles.menuIcon, { backgroundColor: '#f0f0f0' }]}>
                 <Text style={{ fontSize: 14 }}>{item.icon}</Text>
