@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Linking,
+  ActivityIndicator, Linking, Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Icon } from '../components/Icon';
 import { COLORS } from '../constants';
 import { useAppStore } from '../store';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+const API_URL = process.env.EXPO_PUBLIC_API_URL
+  || 'https://poetic-youthfulness-production-fecb.up.railway.app';
 
 export const AccountScreen = () => {
   const nav = useNavigation<any>();
@@ -23,11 +25,10 @@ export const AccountScreen = () => {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/orders/client/${user?.email}`);
+      const res = await fetch(`${API_URL}/api/orders/client/${encodeURIComponent(user?.email || '')}`);
       const data = await res.json();
       if (data.orders) setClientOrders(data.orders);
     } catch (e) {
-      // Fallback sur le store local
       setClientOrders(orders);
     }
     setLoading(false);
@@ -38,17 +39,24 @@ export const AccountScreen = () => {
     setClientOrders([]);
   };
 
-  // Si pas connecté → écran login
+  // Non connecté
   if (!user) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.notLoggedContainer}>
-          <Text style={styles.notLoggedIcon}>◯</Text>
+          <View style={styles.notLoggedIconWrap}>
+            <Icon name="UserRound" size={34} color={COLORS.gold} strokeWidth={1.3} />
+          </View>
           <Text style={styles.notLoggedTitle}>Mon espace client</Text>
-          <Text style={styles.notLoggedSub}>Connectez-vous pour accéder à vos commandes et rapports</Text>
+          <Text style={styles.notLoggedSub}>
+            Retrouvez vos commandes, vos projections et vos rapports personnalisés.
+          </Text>
           <TouchableOpacity style={styles.loginBtn} onPress={() => nav.navigate('Login')}>
             <Text style={styles.loginBtnText}>Se connecter</Text>
           </TouchableOpacity>
+          <Text style={styles.notLoggedHint}>
+            Connexion par code envoyé à l'adresse email de votre commande.
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -69,19 +77,19 @@ export const AccountScreen = () => {
           <Text style={styles.profileEmail}>{user.email}</Text>
         </View>
         <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
-          <Text style={styles.logoutText}>Déconnexion</Text>
+          <Icon name="LogOut" size={18} color="rgba(255,255,255,0.5)" />
         </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
 
-          {/* Stats */}
+          {/* Statistiques */}
           <View style={styles.statsRow}>
             {[
               { num: vides.length, label: 'biens vides' },
               { num: habites.length, label: 'biens habités' },
-              { num: habites.filter(o => o.pdfUrl).length, label: 'rapports PDF' },
+              { num: habites.filter(o => o.pdfUrl).length, label: 'rapports' },
             ].map((s) => (
               <View key={s.label} style={styles.statCard}>
                 <Text style={styles.statNum}>{s.num}</Text>
@@ -90,35 +98,48 @@ export const AccountScreen = () => {
             ))}
           </View>
 
-          {loading && <ActivityIndicator color={COLORS.gold} style={{ marginBottom: 16 }} />}
+          {loading && <ActivityIndicator color={COLORS.gold} style={{ marginBottom: 18 }} />}
 
-          {/* Commandes biens vides */}
+          {/* Biens vides */}
           {vides.length > 0 && (
             <>
-              <Text style={styles.sectionLabel}>Biens vides — Résultats IA</Text>
+              <Text style={styles.sectionLabel}>Biens vides — Projections</Text>
               {vides.map((order, i) => (
                 <View key={i} style={styles.orderCard}>
                   <View style={styles.orderTop}>
-                    <Text style={styles.orderName}>{order.formulaLabel || 'Analyse IA'}</Text>
-                    <View style={[styles.orderBadge, { backgroundColor: '#edf7ee' }]}>
-                      <Text style={[styles.orderBadgeText, { color: '#3a7a3e' }]}>Terminé</Text>
+                    <Text style={styles.orderName}>{order.formulaLabel || 'Projection'}</Text>
+                    <View style={[styles.orderBadge, { backgroundColor: order.pretALivrer ? '#eef6ef' : COLORS.goldLight }]}>
+                      <Text style={[styles.orderBadgeText, { color: order.pretALivrer ? '#3a7a3e' : COLORS.goldDark }]}>
+                        {order.pretALivrer ? 'Disponible' : 'En préparation'}
+                      </Text>
                     </View>
                   </View>
-                  <Text style={styles.orderMeta}>{formatDate(order.createdAt)}</Text>
-                  <View style={styles.orderActions}>
-                    <TouchableOpacity
-                      style={[styles.actionBtn, { backgroundColor: COLORS.goldLight }]}
-                      onPress={() => nav.navigate('Result')}
-                    >
-                      <Text style={[styles.actionBtnText, { color: COLORS.goldDark }]}>Voir résultat</Text>
-                    </TouchableOpacity>
-                  </View>
+                  <Text style={styles.orderMeta}>{order.reference} · {formatDate(order.createdAt)}</Text>
+                  <TouchableOpacity
+                    style={[styles.actionBtn, { backgroundColor: order.pretALivrer ? COLORS.goldLight : COLORS.grayLight }]}
+                    onPress={() => order.pretALivrer
+                      ? nav.navigate('Result', { photos: order.photos, reference: order.reference })
+                      : Alert.alert(
+                          "En préparation",
+                          "Vos visuels sont en cours de vérification. Vous recevrez un email dès qu'ils seront disponibles."
+                        )
+                    }
+                  >
+                    <Icon
+                      name={order.pretALivrer ? "Images" : "Clock"}
+                      size={15}
+                      color={order.pretALivrer ? COLORS.goldDark : COLORS.gray}
+                    />
+                    <Text style={[styles.actionBtnText, { color: order.pretALivrer ? COLORS.goldDark : COLORS.gray }]}>
+                      {order.pretALivrer ? 'Voir mes photos' : 'En préparation'}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               ))}
             </>
           )}
 
-          {/* Commandes biens habités */}
+          {/* Biens habités */}
           {habites.length > 0 && (
             <>
               <Text style={styles.sectionLabel}>Biens habités — Rapports expert</Text>
@@ -126,24 +147,27 @@ export const AccountScreen = () => {
                 <View key={i} style={styles.orderCard}>
                   <View style={styles.orderTop}>
                     <Text style={styles.orderName}>{order.formulaLabel || 'Rapport expert'}</Text>
-                    <View style={[styles.orderBadge, { backgroundColor: order.pdfUrl ? '#edf7ee' : '#fdf6ec' }]}>
-                      <Text style={[styles.orderBadgeText, { color: order.pdfUrl ? '#3a7a3e' : '#b8892e' }]}>
-                        {order.pdfUrl ? 'Rapport disponible' : 'En cours (48-72h)'}
+                    <View style={[styles.orderBadge, { backgroundColor: order.pdfUrl ? '#eef6ef' : COLORS.goldLight }]}>
+                      <Text style={[styles.orderBadgeText, { color: order.pdfUrl ? '#3a7a3e' : COLORS.goldDark }]}>
+                        {order.pdfUrl ? 'Disponible' : 'En cours'}
                       </Text>
                     </View>
                   </View>
-                  <Text style={styles.orderMeta}>{formatDate(order.createdAt)}</Text>
-                  {order.pdfUrl && (
+                  <Text style={styles.orderMeta}>{order.reference} · {formatDate(order.createdAt)}</Text>
+                  {order.pdfUrl ? (
                     <TouchableOpacity
-                      style={[styles.actionBtn, { backgroundColor: '#edf7ee', marginTop: 8 }]}
+                      style={[styles.actionBtn, { backgroundColor: '#eef6ef' }]}
                       onPress={() => Linking.openURL(order.pdfUrl)}
                     >
-                      <Text style={[styles.actionBtnText, { color: '#3a7a3e' }]}>Télécharger mon rapport PDF</Text>
+                      <Icon name="FileText" size={15} color="#3a7a3e" />
+                      <Text style={[styles.actionBtnText, { color: '#3a7a3e' }]}>Télécharger mon rapport</Text>
                     </TouchableOpacity>
-                  )}
-                  {!order.pdfUrl && (
+                  ) : (
                     <View style={styles.pendingRow}>
-                      <Text style={styles.pendingText}>Nos experts travaillent sur votre dossier. Vous recevrez un email dès que votre rapport est prêt.</Text>
+                      <Icon name="Clock" size={15} color={COLORS.goldDark} />
+                      <Text style={styles.pendingText}>
+                        Notre équipe travaille sur votre dossier. Vous recevrez un email dès qu'il sera prêt.
+                      </Text>
                     </View>
                   )}
                 </View>
@@ -154,6 +178,7 @@ export const AccountScreen = () => {
           {/* Aucune commande */}
           {clientOrders.length === 0 && !loading && (
             <View style={styles.emptyCard}>
+              <Icon name="PackageOpen" size={34} color={COLORS.beigeMid} strokeWidth={1.2} />
               <Text style={styles.emptyText}>Aucune commande pour le moment</Text>
               <TouchableOpacity style={styles.emptyBtn} onPress={() => nav.navigate('Offers')}>
                 <Text style={styles.emptyBtnText}>Découvrir nos offres</Text>
@@ -163,19 +188,22 @@ export const AccountScreen = () => {
 
           {/* Menu */}
           {[
-            { icon: "🏡", label: "Qui sommes-nous", screen: "About" },
-            { icon: "✉️", label: "Contact", screen: null },
+            { icon: "Info", label: "Qui sommes-nous", screen: "About" },
+            { icon: "Mail", label: "Nous contacter", screen: null },
           ].map((item) => (
             <TouchableOpacity
               key={item.label}
               style={styles.menuItem}
-              onPress={() => item.screen && nav.navigate(item.screen)}
+              onPress={() => item.screen
+                ? nav.navigate(item.screen)
+                : Linking.openURL('mailto:contact@evidence-homestaging.fr')
+              }
             >
-              <View style={[styles.menuIcon, { backgroundColor: '#f0f0f0' }]}>
-                <Text style={{ fontSize: 14 }}>{item.icon}</Text>
+              <View style={styles.menuIcon}>
+                <Icon name={item.icon} size={17} color={COLORS.goldDark} />
               </View>
               <Text style={styles.menuLabel}>{item.label}</Text>
-              <Text style={styles.menuArrow}>›</Text>
+              <Icon name="ChevronRight" size={17} color={COLORS.beigeMid} />
             </TouchableOpacity>
           ))}
 
@@ -192,42 +220,80 @@ function formatDate(iso: string) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.offWhite },
+
   notLoggedContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
-  notLoggedIcon: { fontSize: 48, color: COLORS.gray, marginBottom: 16 },
-  notLoggedTitle: { fontSize: 20, fontWeight: '500', color: COLORS.dark, marginBottom: 8 },
-  notLoggedSub: { fontSize: 13, color: COLORS.gray, textAlign: 'center', marginBottom: 28, lineHeight: 20 },
-  loginBtn: { backgroundColor: COLORS.dark, borderRadius: 12, paddingVertical: 14, paddingHorizontal: 40 },
-  loginBtnText: { color: COLORS.gold, fontSize: 14, fontWeight: '500' },
-  profileHeader: { backgroundColor: COLORS.dark, padding: 16, paddingTop: 20, flexDirection: 'row', alignItems: 'center', gap: 14 },
-  avatar: { width: 50, height: 50, borderRadius: 25, backgroundColor: COLORS.gold, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontSize: 18, fontWeight: '500', color: '#fff' },
-  profileName: { fontSize: 15, fontWeight: '500', color: '#fff' },
-  profileEmail: { fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 2 },
-  logoutBtn: { padding: 6 },
-  logoutText: { fontSize: 10, color: 'rgba(255,255,255,0.4)' },
+  notLoggedIconWrap: {
+    width: 84, height: 84, borderRadius: 42, backgroundColor: COLORS.goldLight,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 22,
+  },
+  notLoggedTitle: { fontSize: 21, fontWeight: '600', color: COLORS.dark, marginBottom: 10 },
+  notLoggedSub: { fontSize: 13, color: COLORS.gray, textAlign: 'center', marginBottom: 30, lineHeight: 20 },
+  loginBtn: { backgroundColor: COLORS.dark, borderRadius: 14, paddingVertical: 16, paddingHorizontal: 48 },
+  loginBtnText: { color: COLORS.gold, fontSize: 14.5, fontWeight: '600' },
+  notLoggedHint: { fontSize: 11.5, color: COLORS.gray, textAlign: 'center', marginTop: 20, lineHeight: 17 },
+
+  profileHeader: {
+    backgroundColor: COLORS.dark, padding: 18, paddingTop: 22,
+    flexDirection: 'row', alignItems: 'center', gap: 15,
+  },
+  avatar: { width: 54, height: 54, borderRadius: 27, backgroundColor: COLORS.gold, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: 19, fontWeight: '600', color: '#fff' },
+  profileName: { fontSize: 16, fontWeight: '500', color: '#fff' },
+  profileEmail: { fontSize: 11.5, color: 'rgba(255,255,255,0.45)', marginTop: 3 },
+  logoutBtn: { padding: 8 },
+
   content: { padding: 16 },
-  statsRow: { flexDirection: 'row', gap: 8, marginBottom: 14 },
-  statCard: { flex: 1, backgroundColor: COLORS.white, borderRadius: 11, borderWidth: 0.5, borderColor: COLORS.border, padding: 10, alignItems: 'center' },
-  statNum: { fontSize: 16, fontWeight: '500', color: COLORS.gold },
-  statLabel: { fontSize: 8, color: COLORS.gray, marginTop: 2, textAlign: 'center' },
-  sectionLabel: { fontSize: 9, fontWeight: '600', color: COLORS.gray, letterSpacing: 0.7, textTransform: 'uppercase', marginBottom: 8, marginTop: 8 },
-  orderCard: { backgroundColor: COLORS.white, borderRadius: 11, borderWidth: 0.5, borderColor: COLORS.border, padding: 12, marginBottom: 8 },
-  orderTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 },
-  orderName: { fontSize: 11, fontWeight: '500', color: COLORS.dark, flex: 1, marginRight: 8 },
-  orderBadge: { borderRadius: 20, paddingHorizontal: 7, paddingVertical: 2 },
-  orderBadgeText: { fontSize: 8, fontWeight: '600' },
-  orderMeta: { fontSize: 9, color: COLORS.gray },
-  orderActions: { flexDirection: 'row', gap: 6, marginTop: 8 },
-  actionBtn: { flex: 1, padding: 8, borderRadius: 7, alignItems: 'center' },
-  actionBtnText: { fontSize: 10, fontWeight: '500' },
-  pendingRow: { marginTop: 8, backgroundColor: '#fdf6ec', borderRadius: 8, padding: 10 },
-  pendingText: { fontSize: 11, color: '#b8892e', lineHeight: 16 },
-  emptyCard: { backgroundColor: COLORS.white, borderRadius: 11, borderWidth: 0.5, borderColor: COLORS.border, padding: 24, alignItems: 'center', marginBottom: 16 },
-  emptyText: { fontSize: 13, color: COLORS.gray, marginBottom: 16 },
-  emptyBtn: { backgroundColor: COLORS.dark, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 24 },
-  emptyBtnText: { color: COLORS.gold, fontSize: 12, fontWeight: '500' },
-  menuItem: { backgroundColor: COLORS.white, borderRadius: 11, borderWidth: 0.5, borderColor: COLORS.border, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 11, marginBottom: 6 },
-  menuIcon: { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  menuLabel: { flex: 1, fontSize: 11, color: COLORS.dark },
-  menuArrow: { fontSize: 10, color: '#ccc' },
+
+  statsRow: { flexDirection: 'row', gap: 9, marginBottom: 20 },
+  statCard: {
+    flex: 1, backgroundColor: COLORS.white, borderRadius: 14,
+    borderWidth: 0.5, borderColor: COLORS.border, paddingVertical: 14, alignItems: 'center',
+  },
+  statNum: { fontSize: 20, fontWeight: '600', color: COLORS.gold },
+  statLabel: { fontSize: 10.5, color: COLORS.gray, marginTop: 4, textAlign: 'center' },
+
+  sectionLabel: {
+    fontSize: 11, fontWeight: '600', color: COLORS.gray, letterSpacing: 0.9,
+    textTransform: 'uppercase', marginBottom: 12, marginTop: 10,
+  },
+
+  orderCard: {
+    backgroundColor: COLORS.white, borderRadius: 16,
+    borderWidth: 0.5, borderColor: COLORS.border, padding: 16, marginBottom: 10,
+  },
+  orderTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 },
+  orderName: { fontSize: 13.5, fontWeight: '600', color: COLORS.dark, flex: 1, marginRight: 10 },
+  orderBadge: { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 },
+  orderBadgeText: { fontSize: 10, fontWeight: '600' },
+  orderMeta: { fontSize: 11.5, color: COLORS.gray, marginBottom: 12 },
+
+  actionBtn: {
+    paddingVertical: 12, borderRadius: 12, alignItems: 'center',
+    flexDirection: 'row', justifyContent: 'center', gap: 8,
+  },
+  actionBtnText: { fontSize: 12.5, fontWeight: '600' },
+
+  pendingRow: {
+    backgroundColor: COLORS.goldLight, borderRadius: 12, padding: 13,
+    flexDirection: 'row', gap: 10, alignItems: 'flex-start',
+  },
+  pendingText: { fontSize: 11.5, color: COLORS.goldDark, lineHeight: 17, flex: 1 },
+
+  emptyCard: {
+    backgroundColor: COLORS.white, borderRadius: 16, borderWidth: 0.5, borderColor: COLORS.border,
+    padding: 30, alignItems: 'center', marginBottom: 18, gap: 14,
+  },
+  emptyText: { fontSize: 13.5, color: COLORS.gray },
+  emptyBtn: { backgroundColor: COLORS.dark, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 28 },
+  emptyBtnText: { color: COLORS.gold, fontSize: 12.5, fontWeight: '600' },
+
+  menuItem: {
+    backgroundColor: COLORS.white, borderRadius: 14, borderWidth: 0.5, borderColor: COLORS.border,
+    padding: 14, flexDirection: 'row', alignItems: 'center', gap: 13, marginBottom: 8,
+  },
+  menuIcon: {
+    width: 36, height: 36, borderRadius: 10, backgroundColor: COLORS.goldLight,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  menuLabel: { flex: 1, fontSize: 13, color: COLORS.dark },
 });

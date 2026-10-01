@@ -1,26 +1,36 @@
 export const COLORS = {
-  gold: '#c8a96e',
-  goldLight: '#fdf6ec',
-  goldMid: '#f0d9b5',
-  goldDark: '#a07c3e',
+  // Doré — identité de marque
+  gold: '#bd8a34',
+  goldLight: '#faf4ec',
+  goldMid: '#e8d3b0',
+  goldDark: '#9a6f26',
+
+  // Vert kaki — univers professionnel
+  khaki: '#313d00',
+  khakiLight: '#4a5a14',
+
+  // Neutres
   dark: '#1a1a1a',
   dark2: '#2a2a2a',
+  black: '#000000',
   white: '#ffffff',
-  offWhite: '#f8f7f4',
-  beige: '#e8e4de',
-  beigeMid: '#d4cdc4',
-  gray: '#888888',
-  grayLight: '#f0ece8',
-  grayDark: '#555555',
+  offWhite: '#f7f2ee',
+  beige: '#e8e0d8',
+  beigeMid: '#d4c9bd',
+  gray: '#8a8079',
+  grayLight: '#f0ebe6',
+  grayDark: '#4a443f',
+
+  // États
   success: '#22c55e',
   successBg: '#f0faf0',
   successBorder: '#c0e0c0',
   successText: '#2d6a32',
-  warning: '#f0d9b5',
-  warningBg: '#fff8f0',
-  warningText: '#8a6020',
+  warning: '#e8d3b0',
+  warningBg: '#fdf8f0',
+  warningText: '#9a6f26',
   stripePurple: '#635bff',
-  border: '#e8e4de',
+  border: '#e8e0d8',
 };
 
 export const FORMULAS: any = {
@@ -34,25 +44,20 @@ export const FORMULAS: any = {
   pro_agency: { id: 'pro_agency', name: 'PRO Agency', price: 199.00 },
 };
 
+// Identifiants alignés sur les prompts du backend
 export const ROOM_TYPES = [
-  { id: 'salon', label: 'Salon', icon: '🛋️', multiVue: true },
-  { id: 'chambre', label: 'Chambre', icon: '🛏️', multiVue: true, hasSubTypes: true },
-  { id: 'cuisine', label: 'Cuisine', icon: '🍳', multiVue: false },
-  { id: 'salle_manger', label: 'Salle à manger', icon: '🪑', multiVue: false },
-  { id: 'bureau', label: 'Bureau', icon: '💼', multiVue: false },
-  { id: 'entree', label: 'Entrée', icon: '🚪', multiVue: false },
-  { id: 'salle_bain', label: 'Salle de bain', icon: '🚿', multiVue: false },
-  { id: 'suite_parentale', label: 'Suite parentale', icon: '🌙', multiVue: false },
-  { id: 'terrasse', label: 'Terrasse', icon: '🌿', multiVue: false },
+  { id: 'salon', label: 'Salon', icon: 'Sofa' },
+  { id: 'salon_salle_a_manger', label: 'Salon / Salle à manger', icon: 'Armchair' },
+  { id: 'cuisine', label: 'Cuisine', icon: 'CookingPot' },
+  { id: 'coin_repas', label: 'Coin repas', icon: 'UtensilsCrossed' },
+  { id: 'salle_bain', label: 'Salle de bain', icon: 'Bath' },
+  { id: 'chambre_parentale', label: 'Chambre parentale', icon: 'BedDouble' },
+  { id: 'chambre_enfant', label: 'Chambre enfant', icon: 'BedSingle' },
+  { id: 'chambre_ado', label: 'Chambre ado', icon: 'Lamp' },
+  { id: 'bureau', label: 'Bureau', icon: 'Briefcase' },
+  { id: 'balcon_terrasse', label: 'Balcon / Terrasse', icon: 'TreePalm' },
 ];
 
-export const CHAMBRE_SUBTYPES = [
-  { id: 'bebe', label: 'Bébé', icon: '🍼', ageRange: '0–2 ans' },
-  { id: 'enfant', label: 'Enfant', icon: '🧸', ageRange: '3–10 ans' },
-  { id: 'ado', label: 'Ado', icon: '🎧', ageRange: '11–17 ans' },
-  { id: 'adulte', label: 'Adulte', icon: '🌿', ageRange: '18+ ans' },
-];
-
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.evidence-homestaging.fr';
-export const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_KEY || 'pk_live_XXXX';
-export const FREE_TRIAL_COOLDOWN_HOURS = 24;
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL
+  || 'https://poetic-youthfulness-production-fecb.up.railway.app';
+export const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_KEY || '';

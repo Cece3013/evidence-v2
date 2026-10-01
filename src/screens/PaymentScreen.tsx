@@ -1,15 +1,19 @@
 import React, { useState } from "react";
 import {
-  View, Text, ScrollView, StyleSheet, Alert, TouchableOpacity, TextInput,
+  View, Text, ScrollView, StyleSheet, Alert, TouchableOpacity, TextInput, Linking,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useStripe } from "@stripe/stripe-react-native";
 import { COLORS, FORMULAS } from "../constants";
 import { useAppStore } from "../store";
+
+const CGV_URL = 'https://evidence-platform-pied.vercel.app/cgv';
 
 export const PaymentScreen = () => {
   const navigation = useNavigation<any>();
   const { orderConfig, setOrderConfig } = useAppStore();
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [loading, setLoading] = useState(false);
   const [cgvAccepted, setCgvAccepted] = useState(false);
 
@@ -22,16 +26,15 @@ export const PaymentScreen = () => {
   const [propertySize, setPropertySize] = useState<"Studio" | "T1" | "T2" | "T3" | "T4" | "T5" | "Autre" | null>(null);
   const [exteriorFeatures, setExteriorFeatures] = useState<string[]>([]);
 
-  const formulaId = orderConfig?.formulaId || "essentiel";
+  const formulaId = orderConfig?.formulaId || "decouverte";
   const formula = Object.values(FORMULAS).find((f: any) => f.id === formulaId);
-  const price = (formula as any)?.price || 9.90;
+  const price = (formula as any)?.price || 39.00;
   const priceHT = parseFloat((price / 1.20).toFixed(2));
   const tva = parseFloat((price - priceHT).toFixed(2));
-  const formulaName = (formula as any)?.name || "Essentiel";
+  const formulaName = (formula as any)?.name || "Découverte";
   const photoCount = orderConfig?.photos?.length || 0;
   const isHabite = orderConfig?.isHabite || false;
-  
-  // Suppression de " - IA" pour biens vides
+
   const typePrestation = isHabite ? "Bien habité - Expert" : "Bien vide";
 
   const toggleExterior = (feature: string) => {
@@ -40,67 +43,112 @@ export const PaymentScreen = () => {
     );
   };
 
- const handlePay = async () => {
-  if (!clientName.trim()) {
-    Alert.alert("Champ requis", "Veuillez saisir votre nom.");
-    return;
-  }
-  if (!clientEmail.includes('@')) {
-    Alert.alert("Email invalide", "Veuillez saisir un email valide.");
-    return;
-  }
-  if (!propertySize) {
-    Alert.alert("Champ requis", "Veuillez sélectionner la taille du logement.");
-    return;
-  }
-  if (!cgvAccepted) {
-    Alert.alert("Validation requise", "Veuillez accepter les CGV.");
-    return;
-  }
+  const handlePay = async () => {
+    if (!clientName.trim()) {
+      Alert.alert("Champ requis", "Veuillez saisir votre nom.");
+      return;
+    }
+    if (!clientEmail.includes('@')) {
+      Alert.alert("Email invalide", "Veuillez saisir un email valide.");
+      return;
+    }
+    if (!propertySize) {
+      Alert.alert("Champ requis", "Veuillez sélectionner la taille du logement.");
+      return;
+    }
+    if (!cgvAccepted) {
+      Alert.alert("Validation requise", "Veuillez accepter les CGV.");
+      return;
+    }
 
-  setLoading(true);
-  try {
-    const API_URL = 'https://poetic-youthfulness-production-fecb.up.railway.app';
-    const orderId = "ORD-" + Date.now();
+    setLoading(true);
+    try {
+      const API_URL = process.env.EXPO_PUBLIC_API_URL
+        || 'https://poetic-youthfulness-production-fecb.up.railway.app';
 
-    const payload = {
-      photos: orderConfig?.photos || [],
-      clientName: clientName.trim(),
-      clientEmail: clientEmail.toLowerCase().trim(),
-      clientPhone: clientPhone.trim(),
-      propertyAddress: propertyAddress.trim(),
-      propertyType: propertyType || null,
-      propertySize: propertySize,           // variable locale directe
-      exteriorFeatures: exteriorFeatures,   // variable locale directe
-      isHabite: orderConfig?.isHabite || false,
-      orderId,
-      formulaId: orderConfig?.formulaId || "essentiel",
-      formulaLabel: formulaName,
-    };
+      // 1. Créer l'intention de paiement côté serveur
+      const res = await fetch(`${API_URL}/api/payments/create-intent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          formulaId,
+          metadata: {
+            clientName: clientName.trim(),
+            clientEmail: clientEmail.toLowerCase().trim(),
+            clientPhone: clientPhone.trim(),
+            propertyAddress: propertyAddress.trim(),
+            propertyType: propertyType || '',
+            propertySize: propertySize,
+            photoCount: String(photoCount),
+            isHabite: String(isHabite),
+          },
+        }),
+      });
 
-    console.log('[Payment] payload:', payload);
+      const data = await res.json();
 
- // Sauvegarder dans le store pour que ProcessingScreen y ait accès
-setOrderConfig({
-  clientName: clientName.trim(),
-  clientEmail: clientEmail.toLowerCase().trim(),
-  clientPhone: clientPhone.trim(),
-  propertyAddress: propertyAddress.trim(),
-  propertyType: propertyType || undefined,
-  propertySize,
-  exteriorFeatures,
-  formulaLabel: formulaName,
-});
+      if (!res.ok || !data.clientSecret) {
+        Alert.alert("Erreur", data.error || "Impossible de préparer le paiement.");
+        setLoading(false);
+        return;
+      }
 
-// Naviguer vers ProcessingScreen qui fera l'appel backend
-navigation.navigate("Processing", { orderId });
-  } catch (err) {
-    Alert.alert("Erreur", "Une erreur est survenue. Réessayez.");
-  } finally {
-    setLoading(false);
-  }
-};
+      // 2. Préparer la feuille de paiement Stripe
+      const { error: initError } = await initPaymentSheet({
+        merchantDisplayName: 'Evidence Home Staging',
+        paymentIntentClientSecret: data.clientSecret,
+        defaultBillingDetails: {
+          name: clientName.trim(),
+          email: clientEmail.toLowerCase().trim(),
+        },
+        appearance: {
+          colors: {
+            primary: COLORS.gold,
+          },
+        },
+      });
 
+      if (initError) {
+        console.error('[Payment] initPaymentSheet:', initError);
+        Alert.alert("Erreur", "Impossible d'ouvrir le paiement. Réessayez.");
+        setLoading(false);
+        return;
+      }
+
+      // 3. Afficher la feuille de paiement
+      const { error: payError } = await presentPaymentSheet();
+
+      if (payError) {
+        if (payError.code !== 'Canceled') {
+          Alert.alert("Paiement refusé", payError.message || "Le paiement n'a pas abouti.");
+        }
+        setLoading(false);
+        return;
+      }
+
+      // 4. Paiement réussi — sauvegarder puis lancer le traitement
+      setOrderConfig({
+        clientName: clientName.trim(),
+        clientEmail: clientEmail.toLowerCase().trim(),
+        clientPhone: clientPhone.trim(),
+        propertyAddress: propertyAddress.trim(),
+        propertyType: propertyType || undefined,
+        propertySize,
+        exteriorFeatures,
+        formulaLabel: formulaName,
+      });
+
+      navigation.navigate("Processing", {
+        orderId: data.orderId,
+        paymentIntentId: data.paymentIntentId,
+      });
+    } catch (err) {
+      console.error('[Payment] erreur:', err);
+      Alert.alert("Erreur", "Une erreur est survenue. Réessayez.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -192,7 +240,6 @@ navigation.navigate("Processing", { orderId });
               ))}
             </View>
 
-            {/* Taille du logement */}
             <Text style={styles.fieldLabel}>Taille du logement *</Text>
             <View style={styles.sizeGrid}>
               {(["Studio", "T1", "T2", "T3", "T4", "T5", "Autre"] as const).map((size) => (
@@ -208,7 +255,6 @@ navigation.navigate("Processing", { orderId });
               ))}
             </View>
 
-            {/* Extérieurs */}
             <Text style={styles.fieldLabel}>Extérieurs</Text>
             <View style={styles.exteriorRow}>
               {(["Balcon", "Cour", "Terrasse"] as const).map((feature) => (
@@ -226,7 +272,7 @@ navigation.navigate("Processing", { orderId });
             </View>
           </View>
 
-          {/* Paiement Stripe */}
+          {/* Information paiement */}
           <View style={styles.card}>
             <View style={styles.stripeHeader}>
               <Text style={styles.stripeTitle}>Paiement par carte</Text>
@@ -236,31 +282,14 @@ navigation.navigate("Processing", { orderId });
               <Text style={{ fontSize: 16, marginLeft: "auto" }}>🔒</Text>
             </View>
 
-            <Text style={styles.fieldLabel}>Numéro de carte</Text>
-            <View style={styles.fieldInput}>
-              <Text style={styles.fieldPlaceholder}>4242  4242  4242  4242</Text>
-              <Text style={{ fontSize: 14 }}>💳</Text>
-            </View>
-
-            <View style={styles.fieldRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.fieldLabel}>Expiration</Text>
-                <View style={styles.fieldHalf}>
-                  <Text style={styles.fieldPlaceholder}>MM / AA</Text>
-                </View>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.fieldLabel}>CVC</Text>
-                <View style={styles.fieldHalf}>
-                  <Text style={styles.fieldPlaceholder}>•••</Text>
-                </View>
-              </View>
-            </View>
+            <Text style={styles.paymentInfo}>
+              En validant, une fenêtre sécurisée Stripe s'ouvrira pour saisir vos informations de paiement.
+            </Text>
 
             <View style={styles.secureRow}>
               <View style={styles.secureDot} />
               <Text style={styles.secureText}>
-                Paiement SSL · Facture PDF envoyée automatiquement
+                Paiement SSL · Facture envoyée automatiquement par email
               </Text>
             </View>
           </View>
@@ -276,18 +305,15 @@ navigation.navigate("Processing", { orderId });
             </View>
             <Text style={styles.cgvText}>
               Je reconnais avoir pris connaissance des{" "}
-              <Text style={styles.cgvLink}>Conditions Générales de Vente</Text>
+              <Text
+                style={styles.cgvLink}
+                onPress={() => Linking.openURL(CGV_URL)}
+              >
+                Conditions Générales de Vente
+              </Text>
               {" "}et je demande l'exécution immédiate de la prestation. Je renonce expressément à mon droit de rétractation de 14 jours.
             </Text>
           </TouchableOpacity>
-
-          {__DEV__ && (
-            <View style={styles.devNotice}>
-              <Text style={styles.devText}>
-                Mode développement — paiement simulé.
-              </Text>
-            </View>
-          )}
 
           <TouchableOpacity
             style={[styles.payBtn, (loading || !cgvAccepted || !propertySize) && styles.payBtnDisabled]}
@@ -295,7 +321,7 @@ navigation.navigate("Processing", { orderId });
             disabled={loading || !cgvAccepted || !propertySize}
           >
             <Text style={styles.payBtnText}>
-              {loading ? "Traitement en cours..." : `Lancer l'analyse — ${price.toFixed(2).replace(".", ",")}€`}
+              {loading ? "Traitement en cours..." : `Payer ${price.toFixed(2).replace(".", ",")}€`}
             </Text>
           </TouchableOpacity>
 
@@ -392,23 +418,12 @@ const styles = StyleSheet.create({
   },
   checkboxChecked: { backgroundColor: COLORS.gold, borderColor: COLORS.gold },
   checkmark: { color: "#fff", fontSize: 11, fontWeight: "700" },
-  stripeHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 14 },
+  stripeHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 },
   stripeTitle: { fontSize: 12, fontWeight: "500", color: COLORS.dark },
   stripeBadge: { backgroundColor: "#635bff", borderRadius: 4, paddingHorizontal: 7, paddingVertical: 3 },
   stripeBadgeText: { color: "#fff", fontSize: 9, fontWeight: "600" },
+  paymentInfo: { fontSize: 10, color: COLORS.grayDark, lineHeight: 16, marginBottom: 10 },
   fieldLabel: { fontSize: 9, color: COLORS.gray, marginBottom: 4, fontWeight: "500" },
-  fieldInput: {
-    backgroundColor: COLORS.offWhite, borderRadius: 8,
-    borderWidth: 0.5, borderColor: COLORS.border,
-    padding: 10, marginBottom: 10,
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-  },
-  fieldRow: { flexDirection: "row", gap: 8, marginBottom: 10 },
-  fieldHalf: {
-    backgroundColor: COLORS.offWhite, borderRadius: 8,
-    borderWidth: 0.5, borderColor: COLORS.border, padding: 10,
-  },
-  fieldPlaceholder: { fontSize: 11, color: COLORS.gray },
   secureRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 },
   secureDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#22c55e" },
   secureText: { fontSize: 9, color: COLORS.gray, flex: 1 },
@@ -420,12 +435,6 @@ const styles = StyleSheet.create({
   },
   cgvText: { fontSize: 10, color: COLORS.grayDark, flex: 1, lineHeight: 16 },
   cgvLink: { color: COLORS.gold, textDecorationLine: "underline" },
-  devNotice: {
-    backgroundColor: "#fff8e1", borderRadius: 10,
-    borderWidth: 0.5, borderColor: "#f0d060",
-    padding: 10, marginBottom: 10,
-  },
-  devText: { fontSize: 9, color: "#7a6000", textAlign: "center", lineHeight: 14 },
   payBtn: {
     backgroundColor: COLORS.gold, borderRadius: 13,
     padding: 15, alignItems: "center", marginBottom: 8,

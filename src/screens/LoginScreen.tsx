@@ -6,10 +6,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../constants';
 import { useAppStore } from '../store';
+import { useNavigation } from '@react-navigation/native';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
 export const LoginScreen = () => {
+    const navigation = useNavigation<any>();
   const [step, setStep] = useState<'email' | 'code'>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -44,8 +46,9 @@ export const LoginScreen = () => {
         body: JSON.stringify({ email: email.toLowerCase().trim(), code }),
       });
       const data = await res.json();
-      if (data.success) {
+            if (data.success) {
         setUser({ id: data.userId, name: data.name || email.split('@')[0], email: data.email });
+        navigation.goBack();
       } else {
         Alert.alert('Code incorrect', 'Vérifiez le code reçu par email.');
       }
