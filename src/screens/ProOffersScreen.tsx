@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { COLORS } from "../constants";
+import { COLORS, SITE_URL } from "../constants";
 
 const PRO_OFFERS = [
   {
@@ -17,7 +17,7 @@ const PRO_OFFERS = [
       "10 photos/mois incluses",
       "Biens vides & habités",
       "Livraison sous 2-12h",
-      "Photos supplémentaires 4,50€",
+      "Photo supplémentaire 12€",
       "Support réactif par email",
       "Accès plateforme 24/7",
       "Facture automatique",
@@ -35,7 +35,7 @@ const PRO_OFFERS = [
       "30 photos/mois incluses",
       "Biens vides & habités",
       "Livraison sous 2-12h",
-      "Photos supplémentaires 4,50€",
+      "Photo supplémentaire 9€",
       "Support réactif par email",
       "Accès plateforme 24/7",
       "Facture automatique",
@@ -53,7 +53,7 @@ const PRO_OFFERS = [
       "80 photos/mois incluses",
       "Biens vides & habités",
       "Livraison sous 2-12h",
-      "Photos supplémentaires 4,50€",
+      "Photo supplémentaire 7€",
       "Support réactif par email",
       "Accès plateforme 24/7",
       "Facture automatique",
@@ -84,6 +84,13 @@ export const ProOffersScreen = () => {
             Support réactif, intégrations avancées.
           </Text>
 
+          <TouchableOpacity
+            style={styles.dejaClient}
+            onPress={() => navigation.navigate("Site", { url: SITE_URL + "/login" })}
+          >
+            <Text style={styles.dejaClientText}>Déjà abonné ? Accéder à mon espace PRO →</Text>
+          </TouchableOpacity>
+
           {/* Offres */}
           {PRO_OFFERS.map((offer) => (
             <View
@@ -109,7 +116,7 @@ export const ProOffersScreen = () => {
               ))}
              <TouchableOpacity
   style={[styles.cta, offer.popular && styles.ctaPrimary]}
-  onPress={() => navigation.navigate("ProSubscription", { offerId: offer.id })}
+  onPress={() => navigation.navigate("Site", { url: SITE_URL + "/inscription" })}
 >
   <Text style={[styles.ctaText, offer.popular && styles.ctaTextPrimary]}>
     S'abonner →
@@ -138,6 +145,12 @@ const styles = StyleSheet.create({
     fontSize: 12, color: COLORS.gray,
     marginBottom: 20, textAlign: "center", lineHeight: 18,
   },
+
+  dejaClient: {
+    backgroundColor: COLORS.dark, borderRadius: 12, paddingVertical: 12,
+    alignItems: "center", marginBottom: 20,
+  },
+  dejaClientText: { fontSize: 12, fontWeight: "600", color: COLORS.gold },
 
   offerCard: {
     backgroundColor: COLORS.white, borderRadius: 14,
