@@ -1,55 +1,22 @@
-import React, { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, Image } from "react-native";
+import React from "react";
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { COLORS } from "../constants";
-import { useAppStore } from "../store";
-
-const PROPERTY_TYPES = ["Maison", "Appartement"] as const;
-
-type PropertyType = "Maison" | "Appartement";
+import { COLORS, SITE_URL } from "../constants";
 
 export const AnalyzeScreen = () => {
   const navigation = useNavigation<any>();
-  const { setOrderConfig } = useAppStore();
 
-  const [propertyType, setPropertyType] = useState<PropertyType | null>(null);
-  const [showFormulaModal, setShowFormulaModal] = useState(false);
-  const [situationType, setSituationType] = useState<"vide" | "habite" | "pro" | null>(null);
-
-  const FORMULAS_VIDE = [
-    { id: "decouverte", name: "Découverte", price: "39€", priceNum: 39, maxPhotos: 2, desc: "2 photos · Avant/Après immédiat" },
-    { id: "essentielle", name: "Essentielle", price: "89€", priceNum: 89, maxPhotos: 5, desc: "5 photos · Avant/Après immédiat" },
-    { id: "performance", name: "Performance", price: "139€", priceNum: 139, maxPhotos: 8, popular: true, desc: "8 photos · Max impact annonce" },
-  ];
-
-  const FORMULAS_HABITE = [
-    { id: "essentiel_habite", name: "Essentiel", price: "79€", priceNum: 79, maxPhotos: 2, desc: "Jusqu'à 2 pièces · 48-72h" },
-    { id: "premium_habite", name: "Premium", price: "159€", priceNum: 159, maxPhotos: 5, popular: true, desc: "Jusqu'à 5 pièces · 72h" },
-  ];
-
+  // Alignement V1 (01/10/2026) : la commande se fait sur le parcours validé du
+  // site, affiché dans l'application (contrôle photo, choix cuisine / salle de
+  // bain, paiement sécurisé Stripe, suivi).
   const handleSituationSelect = (type: "vide" | "habite" | "pro") => {
     if (type === "pro") {
       navigation.navigate("ProOffers");
       return;
     }
-    setSituationType(type);
-    setShowFormulaModal(true);
+    navigation.navigate("Site", { url: `${SITE_URL}/commande?type=${type}` });
   };
-
- const handleFormulaSelect = (formulaId: string, priceNum: number, maxPhotos: number, formulaName: string, formulaPrice: string) => {
-    setOrderConfig({
-      formulaId,
-      formulaPrice: priceNum,
-      formulaLabel: `${formulaName} — ${formulaPrice}`,
-      propertyType: propertyType || undefined,
-      isHabite: situationType === "habite",
-    });
-    setShowFormulaModal(false);
-    navigation.navigate("Upload");
-  };
-
-  const formulas = situationType === "vide" ? FORMULAS_VIDE : FORMULAS_HABITE;
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -110,47 +77,6 @@ export const AnalyzeScreen = () => {
         </View>
       </ScrollView>
 
-      {/* Modal sélection formule */}
-      {showFormulaModal && (
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>
-              {situationType === "vide" ? "Particulier - Bien vide" : "Particulier - Bien habité"}
-            </Text>
-            <Text style={styles.modalSub}>
-              {situationType === "vide"
-                ? "Projection virtuelle · Résultat immédiat"
-                : "Expertise humaine · Résultat sous 48-72h"}
-            </Text>
-
-            {formulas.map((f: any) => (
-              <TouchableOpacity
-                key={f.id}
-                style={[styles.formulaCard, f.popular && styles.formulaCardFeatured]}
-               onPress={() => handleFormulaSelect(f.id, f.priceNum, f.maxPhotos, f.name, f.price)}
-              >
-                {f.popular && (
-                  <View style={styles.formulaBadge}>
-                    <Text style={styles.formulaBadgeText}>Populaire</Text>
-                  </View>
-                )}
-                <View style={styles.formulaRow}>
-                  <Text style={styles.formulaName}>{f.name}</Text>
-                  <Text style={styles.formulaPrice}>{f.price}</Text>
-                </View>
-                <Text style={styles.formulaDesc}>{f.desc}</Text>
-              </TouchableOpacity>
-            ))}
-
-            <TouchableOpacity
-              style={styles.modalCancel}
-              onPress={() => setShowFormulaModal(false)}
-            >
-              <Text style={styles.modalCancelText}>Annuler</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
     </SafeAreaView>
   );
 };
