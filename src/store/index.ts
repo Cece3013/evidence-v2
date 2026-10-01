@@ -5,18 +5,12 @@ export interface OrderConfig {
   formulaId: string;
   formulaPrice: number;
   roomType: string;
-  roomSubType?: string;
   decoStyle: string;
-  multiVue: boolean;
-  selectedAngles: string[];
   photos: any[];
   promptGenerated: string;
   propertyType?: string;
   propertySize?: "Studio" | "T1" | "T2" | "T3" | "T4" | "T5" | "Autre";
   exteriorFeatures?: string[];
-  roomCount?: string;
-  exteriors?: string[];
-  profile?: string;
   isHabite?: boolean;
   clientName?: string;
   clientEmail?: string;
@@ -27,8 +21,9 @@ export interface OrderConfig {
 
 export interface PhotoItem {
   uri: string;
-  angle?: string;
   roomLabel: string;
+  roomTypeId?: string;
+  roomSize?: string;
 }
 
 export interface Conseil {
@@ -39,13 +34,10 @@ export interface Conseil {
 
 export interface AnalysisResult {
   orderId: string;
-  beforeAfterPairs: { angle: string; beforeUri: string | null; afterUri: string | null; afterUri2?: string | null }[];
-  score: number;
-  scoreDetails: { label: string; value: number }[];
+  beforeAfterPairs: { piece: string; avant: string | null; apres: string | null }[];
   conseils: Conseil[];
   pdfUrl?: string;
   invoiceUrl?: string;
-  regenCount: number;
 }
 
 export interface User {
@@ -61,25 +53,19 @@ interface AppState {
   orderConfig: Partial<OrderConfig>;
   currentResult: AnalysisResult | null;
   orders: any[];
-  freeTrialUsed: boolean;
-  freeTrialTimestamp: number | null;
 
   setUser: (user: User | null) => void;
   setOrderConfig: (config: Partial<OrderConfig>) => void;
   resetOrderConfig: () => void;
   setCurrentResult: (result: AnalysisResult | null) => void;
   addOrder: (order: any) => void;
-  setFreeTrialUsed: (timestamp: number) => void;
-  canUseFreeTrialToday: () => boolean;
 }
 
-export const useAppStore = create<AppState>((set, get) => ({
+export const useAppStore = create<AppState>((set) => ({
   user: null,
   orderConfig: {},
   currentResult: null,
   orders: [],
-  freeTrialUsed: false,
-  freeTrialTimestamp: null,
 
   setUser: (user) => set({ user }),
 
@@ -92,14 +78,4 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   addOrder: (order) =>
     set((state) => ({ orders: [order, ...state.orders] })),
-
-  setFreeTrialUsed: (timestamp) =>
-    set({ freeTrialUsed: true, freeTrialTimestamp: timestamp }),
-
-  canUseFreeTrialToday: () => {
-    const { freeTrialTimestamp } = get();
-    if (!freeTrialTimestamp) return true;
-    const hoursSince = (Date.now() - freeTrialTimestamp) / (1000 * 60 * 60);
-    return hoursSince >= 24;
-  },
 }));

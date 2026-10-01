@@ -16,15 +16,14 @@ const TIMELINE = [
   { delay: 5000, duration: 2000, label: "Confirmation de réception…",  icon: "📋" },
 ];
 
-const API_URL = "https://poetic-youthfulness-production-fecb.up.railway.app";
-
-
+const API_URL = process.env.EXPO_PUBLIC_API_URL
+  || "https://poetic-youthfulness-production-fecb.up.railway.app";
 
 export const ProcessingScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { orderConfig, setCurrentResult } = useAppStore();
-  const { orderId } = route.params || {};
+  const { orderId, paymentIntentId } = route.params || {};
   const isHabite = orderConfig?.isHabite || false;
 
   const [currentStep, setCurrentStep] = useState(0);
@@ -58,66 +57,90 @@ export const ProcessingScreen = () => {
   };
 
   const processPhotos = async () => {
-  try {
-    const photos = orderConfig?.photos || [];
-    const minDelay = new Promise(r => setTimeout(r, 8000));
+    try {
+      const photos = orderConfig?.photos || [];
+      const minDelay = new Promise(r => setTimeout(r, 8000));
 
-    if (photos.length > 0) {
-      const photosPayload = await Promise.all(
-        photos.map(async (photo: any) => {
-          const base64 = await FileSystem.readAsStringAsync(photo.uri, {
-            encoding: 'base64' as any,
+      // 1. Confirmer le paiement et générer la facture
+      if (paymentIntentId) {
+        try {
+          const confirmRes = await fetch(`${API_URL}/api/payments/confirm`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId, paymentIntentId }),
           });
-          return {
-            imageBase64: base64,
-            roomTypeId: photo.roomTypeId || 'default',
-            roomSubTypeId: photo.roomSubTypeId || null,
-            roomSize: photo.roomSize || 'medium',
-          };
-        })
-      );
+          if (confirmRes.ok) {
+            const confirmData = await confirmRes.json();
+            console.log('[Processing] Facture générée:', confirmData.invoice?.invoiceNumber);
+          } else {
+            console.error('[Processing] Confirmation paiement échouée');
+          }
+        } catch (err) {
+          console.error('[Processing] Erreur confirmation:', err);
+        }
+      }
 
-      await fetch(`${API_URL}/api/staging/submit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-       body: JSON.stringify({
-  photos: photosPayload,
-  clientName: orderConfig?.clientName || null,
-  clientEmail: orderConfig?.clientEmail || null,
-  clientPhone: orderConfig?.clientPhone || null,
-  propertyAddress: orderConfig?.propertyAddress || null,
-  propertyType: orderConfig?.propertyType || null,
-  propertySize: orderConfig?.propertySize || null,    
-  exteriorFeatures: orderConfig?.exteriorFeatures || [], 
-  isHabite: orderConfig?.isHabite || false,
-  orderId: orderId || `ORD-${Date.now()}`,
-  formulaId: orderConfig?.formulaId,
-  formulaLabel: orderConfig?.formulaLabel || orderConfig?.formulaId || '—',
-  isFreeTrialMode: false,
-}),
+      // 2. Envoyer les photos au backend
+      if (photos.length > 0) {
+        const photosPayload = await Promise.all(
+          photos.map(async (photo: any) => {
+            const base64 = await FileSystem.readAsStringAsync(photo.uri, {
+              encoding: 'base64' as any,
+            });
+            return {
+              imageBase64: base64,
+              roomTypeId: photo.roomTypeId || 'salon',
+              roomSize: photo.roomSize || 'medium',
+            };
+          })
+        );
+
+        const submitRes = await fetch(`${API_URL}/api/staging/submit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            photos: photosPayload,
+            clientName: orderConfig?.clientName || null,
+            clientEmail: orderConfig?.clientEmail || null,
+            clientPhone: orderConfig?.clientPhone || null,
+            propertyAddress: orderConfig?.propertyAddress || null,
+            propertyType: orderConfig?.propertyType || null,
+            propertySize: orderConfig?.propertySize || null,
+            exteriorFeatures: orderConfig?.exteriorFeatures || [],
+            isHabite: orderConfig?.isHabite || false,
+            orderId: orderId || `ORD-${Date.now()}`,
+            formulaId: orderConfig?.formulaId,
+            formulaLabel: orderConfig?.formulaLabel || orderConfig?.formulaId || '—',
+          }),
+        });
+
+        if (!submitRes.ok) {
+          console.error('[Processing] Envoi des photos échoué');
+          setHasError(true);
+        }
+      }
+
+      await minDelay;
+
+      setCurrentResult({
+        orderId: orderId || 'order-' + Date.now(),
+        beforeAfterPairs: [],
+        score: 0,
+        scoreDetails: [],
+        conseils: getDefaultConseils(),
+        regenCount: 0,
       });
+
+      animateWow();
+      setTimeout(() => setDone(true), 2000);
+
+    } catch (err: any) {
+      console.error('[Processing error]', err.message);
+      setHasError(true);
+      animateWow();
+      setTimeout(() => setDone(true), 2000);
     }
-
-    await minDelay;
-
-    setCurrentResult({
-      orderId: orderId || 'order-' + Date.now(),
-      beforeAfterPairs: [],
-      score: 0,
-      scoreDetails: [],
-      conseils: getDefaultConseils(),
-      regenCount: 0,
-    });
-
-       animateWow();
-    setTimeout(() => setDone(true), 2000);
-
-} catch (err: any) {
-    console.error('[Processing error]', err.message);
-    animateWow();
-    setTimeout(() => setDone(true), 2000);
-  }
-};
+  };
 
   const getDefaultConseils = (): Conseil[] => [
     { priorite: "urgent", texte: "Nettoyez soigneusement chaque surface avant les visites.", impact: "L'acheteur perçoit immédiatement le soin apporté au bien." },
@@ -139,12 +162,12 @@ export const ProcessingScreen = () => {
           </View>
           <Text style={styles.habiteTitle}>Analyse en cours</Text>
           <Text style={styles.habiteSub}>Notre équipe d'experts traite votre dossier</Text>
-         <View style={styles.habiteDelayCard}>
+          <View style={styles.habiteDelayCard}>
             <Text style={styles.habiteDelayIcon}>⏱️</Text>
             <View>
               <Text style={styles.habiteDelayTitle}>Délai estimé</Text>
               <Text style={styles.habiteDelayVal}>
-                {orderConfig?.formulaId === "essentiel_habite" ? "48 à 72h" : "24 à 48h"}
+                {orderConfig?.formulaId === "essentiel_habite" ? "48 à 72h" : "Sous 72h"}
               </Text>
             </View>
           </View>
@@ -155,8 +178,8 @@ export const ProcessingScreen = () => {
             </Text>
             <Text style={styles.habiteValueDesc}>
               {orderConfig?.formulaId === "essentiel_habite"
-                ? "Jusqu'à 3 pièces · Rapport PDF personnalisé"
-                : "Jusqu'à 6 pièces · Rapport PDF complet"}
+                ? "Jusqu'à 2 pièces · Rapport PDF personnalisé"
+                : "Jusqu'à 5 pièces · Rapport PDF complet"}
             </Text>
           </View>
           <View style={styles.habiteDeliveryCard}>
@@ -184,19 +207,19 @@ export const ProcessingScreen = () => {
         <Animated.View style={[styles.wowOverlay, { opacity: wowFade }]}>
           <Animated.View style={[styles.wowCard, { transform: [{ scale: wowScale }] }]}>
             <Text style={styles.wowEmoji}>✨</Text>
-          <Text style={styles.wowTitle}>Vos photos ont été{"\n"}bien reçues ✨</Text>
-<Text style={styles.wowSub}>Chaque visuel est contrôlé et optimisé avant livraison</Text>
-{done && (
-  <View style={{ alignItems: 'center' }}>
-    <Text style={{ color: COLORS.gold, fontSize: 14, marginBottom: 24 }}>
-      ⏱️ Livraison sous 2h à 12h
-    </Text>
-    <Button
-      label="Retour à l'accueil →"
-      onPress={() => navigation.navigate('Main')}
-    />
-  </View>
-)}
+            <Text style={styles.wowTitle}>Vos photos ont été{"\n"}bien reçues ✨</Text>
+            <Text style={styles.wowSub}>Chaque visuel est contrôlé et optimisé avant livraison</Text>
+            {done && (
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ color: COLORS.gold, fontSize: 14, marginBottom: 24 }}>
+                  ⏱️ Livraison sous 2h à 12h
+                </Text>
+                <Button
+                  label="Retour à l'accueil →"
+                  onPress={() => navigation.navigate('Main')}
+                />
+              </View>
+            )}
           </Animated.View>
         </Animated.View>
       )}
@@ -230,7 +253,7 @@ export const ProcessingScreen = () => {
             </View>
             <Text style={styles.videNote}>⏱️ proposition en cours de génération…</Text>
             {hasError && (
-              <Text style={styles.errorNote}>Erreur de connexion — vérifiez votre connexion internet.</Text>
+              <Text style={styles.errorNote}>Un problème est survenu lors de l'envoi. Contactez-nous si vous ne recevez rien.</Text>
             )}
           </View>
         </View>

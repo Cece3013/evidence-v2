@@ -4,18 +4,18 @@ import {
   ActivityIndicator, KeyboardAvoidingView, Platform, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 import { COLORS, API_URL } from '../constants';
 import { useAppStore } from '../store';
+import { useNavigation } from '@react-navigation/native';
 
 
 export const LoginScreen = () => {
+    const navigation = useNavigation<any>();
   const [step, setStep] = useState<'email' | 'code'>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const { setUser } = useAppStore();
-  const navigation = useNavigation<any>();
 
   const sendCode = async () => {
     if (!email.includes('@')) return Alert.alert('Email invalide');
@@ -45,10 +45,9 @@ export const LoginScreen = () => {
         body: JSON.stringify({ email: email.toLowerCase().trim(), code }),
       });
       const data = await res.json();
-      if (data.success) {
+            if (data.success) {
         setUser({ id: data.userId, name: data.name || email.split('@')[0], email: data.email, token: data.token });
-        // Retour à l'écran précédent (Compte), qui affiche alors les commandes
-        if (navigation.canGoBack()) navigation.goBack();
+        navigation.goBack();
       } else {
         Alert.alert('Code incorrect', 'Vérifiez le code reçu par email.');
       }

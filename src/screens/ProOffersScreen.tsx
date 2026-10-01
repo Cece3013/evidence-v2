@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS, SITE_URL } from "../constants";
+
 
 const PRO_OFFERS = [
   {
@@ -84,13 +85,6 @@ export const ProOffersScreen = () => {
             Support réactif, intégrations avancées.
           </Text>
 
-          <TouchableOpacity
-            style={styles.dejaClient}
-            onPress={() => navigation.navigate("Site", { url: SITE_URL + "/login" })}
-          >
-            <Text style={styles.dejaClientText}>Déjà abonné ? Accéder à mon espace PRO →</Text>
-          </TouchableOpacity>
-
           {/* Offres */}
           {PRO_OFFERS.map((offer) => (
             <View
@@ -114,16 +108,30 @@ export const ProOffersScreen = () => {
                   <Text style={styles.featureText}>{feat}</Text>
                 </View>
               ))}
-             <TouchableOpacity
-  style={[styles.cta, offer.popular && styles.ctaPrimary]}
-  onPress={() => navigation.navigate("Site", { url: SITE_URL + "/inscription" })}
->
-  <Text style={[styles.ctaText, offer.popular && styles.ctaTextPrimary]}>
-    S'abonner →
-  </Text>
-</TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.cta, offer.popular && styles.ctaPrimary]}
+                onPress={() => navigation.navigate("Site", { url: SITE_URL + "/inscription" })}
+              >
+                <Text style={[styles.ctaText, offer.popular && styles.ctaTextPrimary]}>
+                  S'abonner →
+                </Text>
+              </TouchableOpacity>
             </View>
           ))}
+
+          {/* Accès plateforme pour les abonnés existants */}
+          <View style={styles.platformCard}>
+            <Text style={styles.platformTitle}>Déjà abonné ?</Text>
+            <Text style={styles.platformSub}>
+              Retrouvez votre espace professionnel : envoi de photos, suivi de vos projets, factures et gestion de votre abonnement.
+            </Text>
+            <TouchableOpacity
+              style={styles.platformBtn}
+              onPress={() => navigation.navigate("Site", { url: SITE_URL + "/login" })}
+            >
+              <Text style={styles.platformBtnText}>Accéder à ma plateforme →</Text>
+            </TouchableOpacity>
+          </View>
 
         </View>
       </ScrollView>
@@ -133,8 +141,11 @@ export const ProOffersScreen = () => {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.offWhite },
-  header: { backgroundColor: COLORS.dark, padding: 14, paddingBottom: 16 },
-  headerTitle: { fontSize: 16, fontWeight: "700", color: "#fff" },
+    header: {
+    backgroundColor: COLORS.offWhite, paddingHorizontal: 16, paddingVertical: 16,
+    borderBottomWidth: 0.5, borderBottomColor: COLORS.border,
+  },
+  headerTitle: { fontSize: 19, fontWeight: "600", color: COLORS.dark },
   content: { padding: 16 },
 
   introTitle: {
@@ -145,12 +156,6 @@ const styles = StyleSheet.create({
     fontSize: 12, color: COLORS.gray,
     marginBottom: 20, textAlign: "center", lineHeight: 18,
   },
-
-  dejaClient: {
-    backgroundColor: COLORS.dark, borderRadius: 12, paddingVertical: 12,
-    alignItems: "center", marginBottom: 20,
-  },
-  dejaClientText: { fontSize: 12, fontWeight: "600", color: COLORS.gold },
 
   offerCard: {
     backgroundColor: COLORS.white, borderRadius: 14,
@@ -181,5 +186,15 @@ const styles = StyleSheet.create({
   ctaText: { fontSize: 12, fontWeight: "600", color: COLORS.grayDark },
   ctaTextPrimary: { color: COLORS.goldDark },
 
-
+   platformCard: {
+    backgroundColor: COLORS.khaki, borderRadius: 16,
+    padding: 18, marginTop: 8, marginBottom: 20,
+  },
+  platformTitle: { fontSize: 14, fontWeight: "600", color: COLORS.gold, marginBottom: 6 },
+  platformSub: { fontSize: 11, color: "rgba(255,255,255,0.6)", lineHeight: 17, marginBottom: 14 },
+  platformBtn: {
+    backgroundColor: COLORS.gold, borderRadius: 10,
+    paddingVertical: 12, alignItems: "center",
+  },
+  platformBtnText: { fontSize: 12, fontWeight: "600", color: "#fff" },
 });
