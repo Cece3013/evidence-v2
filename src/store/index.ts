@@ -53,6 +53,7 @@ export interface User {
   name: string;
   email: string;
   role?: string;
+  token?: string; // jeton de connexion client (reçu après le code e-mail)
 }
 
 interface AppState {
