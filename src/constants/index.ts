@@ -54,5 +54,9 @@ export const CHAMBRE_SUBTYPES = [
 ];
 
 export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.evidence-homestaging.fr';
+
+// Adresses réelles utilisées par l'application (alignement V1, 01/10/2026)
+export const API_URL = 'https://poetic-youthfulness-production-fecb.up.railway.app';
+export const SITE_URL = 'https://evidence-platform-pied.vercel.app';
 export const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_KEY || 'pk_live_XXXX';
 export const FREE_TRIAL_COOLDOWN_HOURS = 24;
