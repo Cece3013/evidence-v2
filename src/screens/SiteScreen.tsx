@@ -45,6 +45,14 @@ export const SiteScreen = () => {
       Linking.openURL(req.url).catch(() => {});
       return false;
     }
+    // Pages légales (CGV, mentions, confidentialité) ouvertes depuis une autre
+    // page : on les affiche dans Safari / Chrome, pour ne pas faire perdre au
+    // client la commande en cours dans l'application.
+    const pageLegale = /\/(cgv|mentions-legales|confidentialite)(\?|#|$)/.test(req.url);
+    if (pageLegale && req.url !== url) {
+      Linking.openURL(req.url).catch(() => {});
+      return false;
+    }
     return true;
   };
 
